@@ -10,7 +10,7 @@
   <Identity
     Name="dbb5b228-45db-40a2-97cf-ec9742539b0c"
     Publisher="CN=linotfish"
-    Version="1.0.0.0" />
+    Version="1.0.2.0" />
 
   <mp:PhoneIdentity PhoneProductId="dbb5b228-45db-40a2-97cf-ec9742539b0c" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
