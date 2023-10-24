@@ -1,0 +1,107 @@
+<Page
+    x:Class="SCPView_WinUI.Pages.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:SCPView_WinUI.Pages"
+    xmlns:localData="using:SCPView_WinUI.Data.Model"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    DataContext="{Binding Path=MainPage, Source={StaticResource ViewModelLocator}}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <CollectionViewSource
+            x:Name="SCPMenuItemGroup"
+            IsSourceGrouped="True"
+            ItemsPath="Series"
+            Source="{Binding MenuItems, Mode=OneWay}" />
+
+        <DataTemplate x:Key="ZoomedInTemplate" x:DataType="localData:SCPSeries">
+            <StackPanel>
+                <Button
+                    Command="{Binding ElementName=Page, Path=DataContext.ToItemListPageCommand}"
+                    CommandParameter="{x:Bind}"
+                    Content="{x:Bind SeriesName}"
+                    Style="{StaticResource BaseTextBlockStyle}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ZoomedInGroupHeaderTemplate" x:DataType="localData:SCPMenuItem">
+            <TextBlock
+                Foreground="{ThemeResource ApplicationForegroundThemeBrush}"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Text="{x:Bind Name}" />
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid x:Name="Page" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <EntranceThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+        <Hub>
+            <Hub.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        x:Name="backButton"
+                        Margin="-1,-1,39,0"
+                        VerticalAlignment="Top"
+                        AutomationProperties.AutomationId="BackButton"
+                        AutomationProperties.ItemType="Navigation Button"
+                        AutomationProperties.Name="Back"
+                        Command="{Binding ReferDataCommand}"
+                        Foreground="White"
+                        Style="{StaticResource NavigationBackButtonNormalStyle}" />
+                    <TextBlock
+                        x:Name="pageTitle"
+                        Grid.Column="1"
+                        VerticalAlignment="Top"
+                        FontWeight="ExtraBold"
+                        Foreground="White"
+                        IsHitTestVisible="False"
+                        Style="{StaticResource HeaderTextBlockStyle}"
+                        Text="{StaticResource AppName}"
+                        TextWrapping="NoWrap" />
+                    <ProgressBar
+                        Grid.Column="1"
+                        VerticalAlignment="Bottom"
+                        HorizontalContentAlignment="Stretch"
+                        IsIndeterminate="True"
+                        ShowError="{Binding ProcessBarError}"
+                        ShowPaused="False"
+                        Visibility="{Binding ProcessBarVisibility}" />
+                </Grid>
+            </Hub.Header>
+            <HubSection Width="1280" Margin="0,0,80,0">
+                <HubSection.Background>
+                    <ImageBrush ImageSource="{Binding BannerImage}" />
+                </HubSection.Background>
+            </HubSection>
+            <HubSection
+                x:Name="HomeSection"
+                x:Uid="Home"
+                Width="500"
+                Header="主页">
+                <DataTemplate>
+                    <StackPanel Orientation="Vertical">
+                        <GridView
+                            ItemTemplate="{StaticResource ZoomedInTemplate}"
+                            ItemsSource="{Binding Source={StaticResource SCPMenuItemGroup}}"
+                            ScrollViewer.IsHorizontalScrollChainingEnabled="False"
+                            SelectionMode="None">
+                            <GridView.GroupStyle>
+                                <GroupStyle HeaderTemplate="{StaticResource ZoomedInGroupHeaderTemplate}" />
+                            </GridView.GroupStyle>
+                        </GridView>
+                    </StackPanel>
+                </DataTemplate>
+            </HubSection>
+        </Hub>
+    </Grid>
+</Page>
