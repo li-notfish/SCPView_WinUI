@@ -74,7 +74,7 @@ namespace SCPView_WinUI.ViewModels
         [RelayCommand]
         public void ReferData()
         {
-            Task.Run(async () =>
+            Task.Run( () =>
             {
                 ProcessBarVisibility = Visibility.Visible;
                 ProcessBarError = false;

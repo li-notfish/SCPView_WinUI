@@ -23,7 +23,7 @@
                     Command="{Binding ElementName=Page, Path=DataContext.ToItemListPageCommand}"
                     CommandParameter="{x:Bind}"
                     Content="{x:Bind SeriesName}"
-                    Style="{StaticResource BaseTextBlockStyle}" />
+                    Style="{StaticResource AccentButtonStyle}" />
             </StackPanel>
         </DataTemplate>
 
