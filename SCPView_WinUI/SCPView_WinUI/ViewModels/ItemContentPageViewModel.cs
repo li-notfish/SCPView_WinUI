@@ -32,6 +32,7 @@ namespace SCPView_WinUI.ViewModels
                 {
                     scpItem = new SCPItem();
                     ScpItem.Name = item.HrefName;
+                    CollapsibleContentCollection.Clear();
                     GetContent(item.Href);
                 }
             });
@@ -44,7 +45,9 @@ namespace SCPView_WinUI.ViewModels
                 var contentData = await SCPService.GetItemContent(contentUrl);
                 if (contentData != null)
                 {
+                    var strName = ScpItem.Name;
                     ScpItem = contentData;
+                    ScpItem.Name = strName;
                 }
 
                 if(ScpItem.CollapsibleContents != null)

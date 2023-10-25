@@ -23,7 +23,11 @@ namespace SCPView_WinUI.Data.Parser
             var doc = parser.ParseDocument(body);
             item.Name = doc.QuerySelector("div#page-title").TextContent.Replace("\n","").Trim();
             var divContent = doc.QuerySelector("div#page-content");
-            var pContent = divContent.QuerySelectorAll(":scope > p,ul,blockquote");
+            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
+            if(pContent.Count() == 1 ) 
+            {
+                pContent = divContent.QuerySelectorAll("div.list-pages-item > p,ul,blockquote");
+            }
             var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
             GetPContent(ref item, pContent);
             GetCollapsibleContent(ref item, collapsibleContent);
@@ -80,6 +84,7 @@ namespace SCPView_WinUI.Data.Parser
 
                 if(elements.Last() == element)
                 {
+                    stringBuilder.AppendLine(element.TextContent);
                     item.Contents = stringBuilder.ToString();
                     stringBuilder.Clear();
                 }
@@ -91,6 +96,10 @@ namespace SCPView_WinUI.Data.Parser
         {
             foreach (var element in elements)
             {
+                if(element.TextContent.Contains("请按如下方式引用此页："))
+                {
+                    break;
+                }
                 var cbleContent = new CollapsibleContent();
                 if(element.TextContent.Contains("附件"))
                 {
