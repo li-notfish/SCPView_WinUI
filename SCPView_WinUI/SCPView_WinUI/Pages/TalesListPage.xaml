@@ -7,6 +7,7 @@
     xmlns:local="using:SCPView_WinUI.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    DataContext="{Binding Path=TalesListPage, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
 
     <!--
