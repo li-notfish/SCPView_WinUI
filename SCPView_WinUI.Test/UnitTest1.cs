@@ -1,3 +1,4 @@
+using NUnit.Framework.Legacy;
 using SCPView_WinUI.Data;
 
 namespace SCPView_WinUI.Test
@@ -14,7 +15,7 @@ namespace SCPView_WinUI.Test
         {
             var list = await SCPService.GetSeriesList();
             Console.Write(list.First().Name);
-            Assert.IsFalse(list.Count == 0);
+            ClassicAssert.IsFalse(list.Count == 0);
         }
 
         [Test]
@@ -22,7 +23,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-cn";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -30,7 +31,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-cn-2";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -38,7 +39,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-cn-3";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -46,7 +47,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -54,7 +55,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-2";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -62,7 +63,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-2";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -70,7 +71,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-3";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -78,7 +79,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-4";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -86,7 +87,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-5";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -94,7 +95,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-6";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -102,7 +103,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-7";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
         [Test]
@@ -110,7 +111,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-series-8";
             var itemList = await SCPService.GetItemList(url);
-            Assert.IsFalse(itemList.Count == 0);
+            ClassicAssert.IsFalse(itemList.Count == 0);
             Console.WriteLine(itemList.First().Key + itemList.First().Value.First().HrefName);
         }
 
@@ -119,7 +120,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-cn-002";
             var item = await SCPService.GetItemContent(url);
-            Assert.IsNotNull(item);
+            ClassicAssert.IsNotNull(item);
             Console.WriteLine(item.Name + "\n" + item.Contents);
         }
 
@@ -128,7 +129,7 @@ namespace SCPView_WinUI.Test
         {
             string url = "/scp-cn-001";
             var list = await SCPService.GetZZOList(url);
-            Assert.IsNotNull(list);
+            ClassicAssert.IsNotNull(list);
             Console.Write(list.Count());
         }
     }
