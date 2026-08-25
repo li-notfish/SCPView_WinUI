@@ -16,16 +16,23 @@ namespace SCPView_WinUI.Data.Parser
             var parser = new HtmlParser();
             var doc = parser.ParseDocument(body);
             var sideBar = doc.QuerySelector("#side-bar");
+            if (sideBar == null) return new List<SCPMenuItem>();
+
             var divBlock = sideBar.QuerySelectorAll("div.side-block")
                 .Where(x => x.ClassList.Count() == 1)
-                .First();
+                .FirstOrDefault();
+            if (divBlock == null) return new List<SCPMenuItem>();
+
             List<SCPMenuItem> scpMenuItems = new List<SCPMenuItem>();
-            for (int i = 1; i < 8; i+=2)
+            for (int i = 1; i < 8; i += 2)
             {
+                if (i + 1 >= divBlock.Children.Length) break;
+                var header = divBlock.Children[i];
+                var listBlock = divBlock.Children[i + 1];
                 scpMenuItems.Add(new SCPMenuItem
                 {
-                    Name = divBlock.Children[i ].TextContent,
-                    Series = ParseItem(divBlock.Children[i+1])
+                    Name = header.TextContent,
+                    Series = ParseItem(listBlock)
                 });
             }
             return scpMenuItems;
@@ -34,6 +41,7 @@ namespace SCPView_WinUI.Data.Parser
         public static List<SCPSeries> ParseItem(IElement listBlock)
         {
             List<SCPSeries> scpSeries = new List<SCPSeries>();
+            if (listBlock == null) return scpSeries;
             var aContent = listBlock.QuerySelectorAll("a");
             foreach (var item in aContent)
             {
@@ -43,7 +51,6 @@ namespace SCPView_WinUI.Data.Parser
                     Href = item.Attributes[0].Value
                 });
             }
-
             return scpSeries;
         }
     }

@@ -13,7 +13,9 @@ namespace SCPView_WinUI.Data.Model
         public string SpecialMeasures { get; set; }
         public string Contents { get; set; }
         public List<CollapsibleContent> CollapsibleContents { get; set; }
-
+        public List<BlockQuoteContent> BlockQuoteContents { get; set; }
+        public List<string> ImageUrls { get; set; }
+        public List<string> Tables { get; set; }
 
         public SCPItem()
         {
@@ -22,14 +24,9 @@ namespace SCPView_WinUI.Data.Model
             SpecialMeasures = string.Empty;
             Contents = string.Empty;
             CollapsibleContents = new List<CollapsibleContent>();
-        }
-
-        public SCPItem(string name,string safeLevel, string contents,List<BlockQuoteContent> blockQuoteContents , List<CollapsibleContent> collapsibleContents)
-        {
-            this.Name = name;
-            this.SafeLevel = safeLevel;
-            this.Contents = contents;
-            CollapsibleContents = collapsibleContents;
+            BlockQuoteContents = new List<BlockQuoteContent>();
+            ImageUrls = new List<string>();
+            Tables = new List<string>();
         }
     }
 }

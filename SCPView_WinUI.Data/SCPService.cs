@@ -1,6 +1,7 @@
 ﻿using RestSharp;
 using SCPView_WinUI.Data.Model;
 using SCPView_WinUI.Data.Parser;
+using SCPView_WinUI.Data.Storage;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,10 +13,30 @@ namespace SCPView_WinUI.Data
 {
     public class SCPService
     {
+        private static SCPDatabase? _database;
+
+        private static SCPDatabase Database => _database ??= new SCPDatabase();
+
         public static RestClient GetClient(RestClientOptions options)
         {
             var client = new RestClient(options);
             return client;
+        }
+
+        private static async Task<T> WithRetry<T>(Func<Task<T>> action, int maxRetries = 3, int delayMs = 500)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    return await action();
+                }
+                catch when (i < maxRetries - 1)
+                {
+                    await Task.Delay(delayMs);
+                }
+            }
+            return default!;
         }
 
         /// <summary>
@@ -24,25 +45,18 @@ namespace SCPView_WinUI.Data
         /// <returns></returns>
         public static async Task<List<SCPMenuItem>> GetSeriesList()
         {
-            List<SCPMenuItem> menuItems = new List<SCPMenuItem>();
-            var options = new RestClientOptions(SCPUrl.HOST);
-            var client = GetClient(options);
-            try
+            return await WithRetry(async () =>
             {
+                var options = new RestClientOptions(SCPUrl.HOST);
+                var client = GetClient(options);
                 var respone = await client.GetAsync(new RestRequest());
                 if (respone.IsSuccessful)
                 {
                     string body = respone.Content;
-                    menuItems = SCPSeriesListParser.Parse(body);
-                    return menuItems;
+                    return SCPSeriesListParser.Parse(body);
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-            return new List<SCPMenuItem>();
+                return new List<SCPMenuItem>();
+            });
         }
 
         /// <summary>
@@ -52,56 +66,56 @@ namespace SCPView_WinUI.Data
         /// <returns></returns>
         public static async Task<Dictionary<string, List<SCPItemList>>> GetItemList(string listUrl)
         {
-            Dictionary<string, List<SCPItemList>> itemList = new Dictionary<string, List<SCPItemList>>();
-            var options = new RestClientOptions(SCPUrl.REFERER);
-            var client = GetClient(options);
-            var request = new RestRequest(listUrl);
-            try
+            return await WithRetry(async () =>
             {
+                var options = new RestClientOptions(SCPUrl.REFERER);
+                var client = GetClient(options);
+                var request = new RestRequest(listUrl);
                 var response = await client.GetAsync(request);
                 if (response.IsSuccessful)
                 {
                     string body = response.Content;
-                    itemList = SCPListParser.Parse(body);
-                    return itemList;
+                    return SCPListParser.Parse(body);
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-            return itemList;
+                return new Dictionary<string, List<SCPItemList>>();
+            });
         }
 
         /// <summary>
-        /// 获取指定SCP内容
+        /// 获取指定SCP内容（优先从缓存读取）
         /// </summary>
         /// <param name="scpContentUrl">指定SCP的URL</param>
         /// <returns></returns>
         public static async Task<SCPItem> GetItemContent(string scpContentUrl)
         {
-            var scpItem = new SCPItem();    
-            var options = new RestClientOptions(SCPUrl.REFERER);
-            
-            var client = GetClient(options);
-            var request = new RestRequest(scpContentUrl);
             try
             {
+                var cached = Database.Get(scpContentUrl);
+                if (cached != null) return cached;
+            }
+            catch { }
+
+            var item = await WithRetry(async () =>
+            {
+                var options = new RestClientOptions(SCPUrl.REFERER);
+                var client = GetClient(options);
+                var request = new RestRequest(scpContentUrl);
                 var response = await client.GetAsync(request);
-                if(response.IsSuccessful)
+                if (response.IsSuccessful)
                 {
                     string body = response.Content;
-                    scpItem = SCPContentParser.Parse(body);
-                    return scpItem;
+                    return SCPContentParser.Parse(body);
                 }
-            }
-            catch (Exception e)
+                return new SCPItem();
+            });
+
+            if (item != null && !string.IsNullOrEmpty(item.Name))
             {
-                Console.WriteLine(e.Message);
+                try { Database.Set(scpContentUrl, item); }
+                catch { }
             }
 
-            return scpItem;
+            return item ?? new SCPItem();
         }
 
         /// <summary>
@@ -111,49 +125,45 @@ namespace SCPView_WinUI.Data
         /// <returns></returns>
         public static async Task<List<SCPSeries>> GetZZOList(string zzoUrl)
         {
-            List<SCPSeries> seriesList = new List<SCPSeries>();
-            var options = new RestClientOptions(SCPUrl.REFERER);
-            var client = GetClient(options);
-            var request = new RestRequest(zzoUrl);
-            try
+            return await WithRetry(async () =>
             {
+                var options = new RestClientOptions(SCPUrl.REFERER);
+                var client = GetClient(options);
+                var request = new RestRequest(zzoUrl);
                 var response = await client.GetAsync(request);
-                if(response.IsSuccessful)
+                if (response.IsSuccessful)
                 {
                     string body = response.Content;
-                    seriesList = await SCPContentParser.ParseZZO(body);
-                    return seriesList;
+                    return await SCPContentParser.ParseZZO(body);
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-            return seriesList;
+                return new List<SCPSeries>();
+            });
         }
 
         public static async Task<SCPBanner> GetBanner()
         {
-            SCPBanner banner = new SCPBanner();
-            var options = new RestClientOptions(SCPUrl.REFERER);
-            var client = GetClient(options);
-            try
+            return await WithRetry(async () =>
             {
+                var options = new RestClientOptions(SCPUrl.REFERER);
+                var client = GetClient(options);
                 var responese = await client.GetAsync(new RestRequest());
-                if(responese.IsSuccessful)
+                if (responese.IsSuccessful)
                 {
                     string body = responese.Content;
-                    banner = BannerParser.Parser(body);
-                    return banner;
+                    return BannerParser.Parser(body);
                 }
-            }
-            catch (Exception e)
-            {
-                await Console.Out.WriteLineAsync(e.Message);
-            }
+                return new SCPBanner();
+            });
+        }
 
-            return banner;
+        public static void ClearCache()
+        {
+            Database.Clear();
+        }
+
+        public static int GetCacheCount()
+        {
+            return Database.Count();
         }
     }
 }
