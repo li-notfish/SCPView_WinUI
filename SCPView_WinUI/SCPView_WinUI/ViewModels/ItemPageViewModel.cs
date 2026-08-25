@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SCPView_WinUI.ViewModels
@@ -23,6 +24,7 @@ namespace SCPView_WinUI.ViewModels
         private ObservableGroupedCollection<string, List<SCPItemList>> scpItemList = new ObservableGroupedCollection<string, List<SCPItemList>>();
 
         private INavigationService _navigationService;
+        private CancellationTokenSource? _cts;
 
         public ItemPageViewModel(INavigationService navigationService)
         {
@@ -32,7 +34,6 @@ namespace SCPView_WinUI.ViewModels
                 if (m.Value is not null)
                 {
                     r.Series = m.Value as SCPSeries;
-                    ScpItemList.Clear();
                     GetSeries();
                 }
             });
@@ -40,35 +41,40 @@ namespace SCPView_WinUI.ViewModels
 
         private async void GetSeries()
         {
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+
             try
             {
+                ScpItemList.Clear();
                 var data = await SCPService.GetItemList(Series.Href);
-                if(data is not null)
+                if (token.IsCancellationRequested || data is null) return;
+
+                foreach (var item in data)
                 {
-                    foreach (var item in data)
-                    {
-                        ScpItemList.AddItem(item.Key,item.Value);
-                    }
+                    if (token.IsCancellationRequested) return;
+                    ScpItemList.AddItem(item.Key, item.Value);
                 }
             }
+            catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
-            
-            
         }
 
         [RelayCommand]
         public void GoBackPage()
         {
+            _cts?.Cancel();
             _navigationService.GoBack();
         }
 
         [RelayCommand]
         public void GoToContent(object parameter)
         {
-            _navigationService.NavigateTo(nameof(ItemContentPage),parameter: parameter);
+            _navigationService.NavigateTo(nameof(ItemContentPage), parameter: parameter);
         }
     }
 }

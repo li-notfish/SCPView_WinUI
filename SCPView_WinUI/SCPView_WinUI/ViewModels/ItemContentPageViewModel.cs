@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SCPView_WinUI.ViewModels
@@ -18,9 +19,10 @@ namespace SCPView_WinUI.ViewModels
         private SCPItem scpItem;
 
         [ObservableProperty]
-        private ObservableGroupedCollection<string,CollapsibleContent> collapsibleContentCollection = new ObservableGroupedCollection<string, CollapsibleContent>();
+        private ObservableGroupedCollection<string, CollapsibleContent> collapsibleContentCollection = new ObservableGroupedCollection<string, CollapsibleContent>();
 
         private INavigationService _navigationService;
+        private CancellationTokenSource? _cts;
 
         public ItemContentPageViewModel(INavigationService navigationService)
         {
@@ -28,7 +30,7 @@ namespace SCPView_WinUI.ViewModels
 
             Messenger.Register<ItemContentPageViewModel, ParameterMessage, string>(this, nameof(ItemContentPageViewModel).Replace("ViewModel", ""), (r, m) =>
             {
-                if(m.Value is SCPItemList item)
+                if (m.Value is SCPItemList item)
                 {
                     scpItem = new SCPItem();
                     ScpItem.Name = item.HrefName;
@@ -40,9 +42,15 @@ namespace SCPView_WinUI.ViewModels
 
         private async void GetContent(string contentUrl)
         {
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+
             try
             {
                 var contentData = await SCPService.GetItemContent(contentUrl);
+                if (token.IsCancellationRequested) return;
+
                 if (contentData != null)
                 {
                     var strName = ScpItem.Name;
@@ -50,14 +58,16 @@ namespace SCPView_WinUI.ViewModels
                     ScpItem.Name = strName;
                 }
 
-                if(ScpItem.CollapsibleContents != null)
+                if (ScpItem.CollapsibleContents != null && !token.IsCancellationRequested)
                 {
                     foreach (var item in ScpItem.CollapsibleContents)
                     {
-                        CollapsibleContentCollection.AddItem(item.Name,item);
+                        if (token.IsCancellationRequested) return;
+                        CollapsibleContentCollection.AddItem(item.Name, item);
                     }
                 }
             }
+            catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
@@ -67,6 +77,7 @@ namespace SCPView_WinUI.ViewModels
         [RelayCommand]
         public void GoBackPage()
         {
+            _cts?.Cancel();
             _navigationService.GoBack();
         }
 
