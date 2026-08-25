@@ -60,13 +60,20 @@ namespace SCPView_WinUI.Data
         }
 
         /// <summary>
-        /// 获取某个系列的列表
+        /// 获取某个系列的列表（优先从缓存读取）
         /// </summary>
         /// <param name="listUrl">系列地址</param>
         /// <returns></returns>
         public static async Task<Dictionary<string, List<SCPItemList>>> GetItemList(string listUrl)
         {
-            return await WithRetry(async () =>
+            try
+            {
+                var cached = Database.GetList(listUrl);
+                if (cached != null) return cached;
+            }
+            catch { }
+
+            var result = await WithRetry(async () =>
             {
                 var options = new RestClientOptions(SCPUrl.REFERER);
                 var client = GetClient(options);
@@ -79,6 +86,14 @@ namespace SCPView_WinUI.Data
                 }
                 return new Dictionary<string, List<SCPItemList>>();
             });
+
+            if (result != null && result.Count > 0)
+            {
+                try { Database.SetList(listUrl, result); }
+                catch { }
+            }
+
+            return result ?? new Dictionary<string, List<SCPItemList>>();
         }
 
         /// <summary>

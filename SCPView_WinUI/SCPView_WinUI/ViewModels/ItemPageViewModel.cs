@@ -25,6 +25,7 @@ namespace SCPView_WinUI.ViewModels
 
         private INavigationService _navigationService;
         private CancellationTokenSource? _cts;
+        private string? _loadedHref;
 
         public ItemPageViewModel(INavigationService navigationService)
         {
@@ -33,7 +34,11 @@ namespace SCPView_WinUI.ViewModels
             {
                 if (m.Value is not null)
                 {
-                    r.Series = m.Value as SCPSeries;
+                    var newSeries = m.Value as SCPSeries;
+                    if (newSeries?.Href == r._loadedHref && r.ScpItemList.Count > 0)
+                        return;
+                    r.Series = newSeries;
+                    r._loadedHref = newSeries?.Href;
                     GetSeries();
                 }
             });

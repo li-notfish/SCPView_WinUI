@@ -41,6 +41,15 @@ namespace SCPView_WinUI.Data.Storage
                     cached_at TEXT NOT NULL
                 )";
             cmd.ExecuteNonQuery();
+
+            var cmd2 = _connection.CreateCommand();
+            cmd2.CommandText = @"
+                CREATE TABLE IF NOT EXISTS cache_lists (
+                    url TEXT PRIMARY KEY,
+                    data TEXT NOT NULL,
+                    cached_at TEXT NOT NULL
+                )";
+            cmd2.ExecuteNonQuery();
         }
 
         public SCPItem? Get(string url)
@@ -121,6 +130,30 @@ namespace SCPView_WinUI.Data.Storage
             var cmd = _connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(1) FROM cache_items";
             return (int)(long)cmd.ExecuteScalar()!;
+        }
+
+        public Dictionary<string, List<SCPItemList>>? GetList(string url)
+        {
+            var cmd = _connection.CreateCommand();
+            cmd.CommandText = "SELECT data FROM cache_lists WHERE url = @url";
+            cmd.Parameters.AddWithValue("@url", url);
+
+            var result = cmd.ExecuteScalar();
+            if (result == null) return null;
+
+            return JsonSerializer.Deserialize<Dictionary<string, List<SCPItemList>>>(result.ToString()!);
+        }
+
+        public void SetList(string url, Dictionary<string, List<SCPItemList>> data)
+        {
+            var cmd = _connection.CreateCommand();
+            cmd.CommandText = @"
+                INSERT OR REPLACE INTO cache_lists (url, data, cached_at)
+                VALUES (@url, @data, @cached_at)";
+            cmd.Parameters.AddWithValue("@url", url);
+            cmd.Parameters.AddWithValue("@data", JsonSerializer.Serialize(data));
+            cmd.Parameters.AddWithValue("@cached_at", DateTime.UtcNow.ToString("o"));
+            cmd.ExecuteNonQuery();
         }
 
         public void Dispose()
