@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
-    xmlns:icore="using:Microsoft.Xaml.Interactions.Core"
     xmlns:local="using:SCPView_WinUI.Pages"
     xmlns:m="using:SCPView_WinUI.Data.Model"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -59,9 +58,9 @@
                         ItemsSource="{Binding}"
                         SelectionMode="Single">
                         <i:Interaction.Behaviors>
-                            <icore:EventTriggerBehavior EventName="SelectionChanged">
-                                <icore:InvokeCommandAction Command="{Binding DataContext.GoToContentCommand, ElementName=itemGridView}" CommandParameter="{Binding ElementName=scpSeriesView, Path=SelectedItem}" />
-                            </icore:EventTriggerBehavior>
+                            <i:EventTriggerBehavior EventName="SelectionChanged">
+                                <i:InvokeCommandAction Command="{Binding DataContext.GoToContentCommand, ElementName=itemGridView}" CommandParameter="{Binding ElementName=scpSeriesView, Path=SelectedItem}" />
+                            </i:EventTriggerBehavior>
                         </i:Interaction.Behaviors>
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="m:SCPItemList">
