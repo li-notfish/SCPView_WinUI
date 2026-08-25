@@ -106,9 +106,16 @@ namespace SCPView_WinUI.Data
             try
             {
                 var cached = Database.Get(scpContentUrl);
-                if (cached != null) return cached;
+                if (cached != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SCPService] Cache hit: {scpContentUrl}, Name={cached.Name}, HubLinks={cached.HubLinks.Count}, Footnotes={cached.Footnotes.Count}");
+                    return cached;
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SCPService] Cache read failed: {ex.Message}");
+            }
 
             var item = await WithRetry(async () =>
             {
@@ -127,7 +134,10 @@ namespace SCPView_WinUI.Data
             if (item != null && !string.IsNullOrEmpty(item.Name))
             {
                 try { Database.Set(scpContentUrl, item); }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SCPService] Cache write failed: {ex.Message}");
+                }
             }
 
             return item ?? new SCPItem();

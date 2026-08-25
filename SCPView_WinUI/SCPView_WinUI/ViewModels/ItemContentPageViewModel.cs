@@ -75,7 +75,8 @@ namespace SCPView_WinUI.ViewModels
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                System.Diagnostics.Debug.WriteLine($"[ItemContentPage] EXCEPTION: {e}");
+                Console.WriteLine($"[ItemContentPage] EXCEPTION: {e}");
             }
             finally
             {

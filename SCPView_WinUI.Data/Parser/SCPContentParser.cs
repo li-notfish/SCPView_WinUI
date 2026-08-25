@@ -86,21 +86,15 @@ namespace SCPView_WinUI.Data.Parser
             if (iframes.Length > 0 && pContent.Count() <= 1)
                 return SCPPageType.Embedded;
 
-            if (divContent.QuerySelector("div.expoblock,yui-navset,.listblock") != null)
-                return SCPPageType.Complex;
-
-            bool hasStandardSections = false;
-            foreach (var el in pContent)
-            {
-                string text = el.TextContent;
-                if (text.Contains("特殊收容措施：") || text.Contains("描述："))
-                {
-                    hasStandardSections = true;
-                    break;
-                }
-            }
-            if (hasStandardSections)
+            if (HasStandardSections(pContent))
                 return SCPPageType.Standard;
+
+            var listblockPContent = divContent.QuerySelectorAll(".listblock > p");
+            if (HasStandardSections(listblockPContent))
+                return SCPPageType.Standard;
+
+            if (divContent.QuerySelector("div.expoblock,.yui-navset,.listblock") != null)
+                return SCPPageType.Complex;
 
             if (pContent.Count() > 15)
                 return SCPPageType.LongNarrative;
@@ -108,12 +102,27 @@ namespace SCPView_WinUI.Data.Parser
             return SCPPageType.Standard;
         }
 
+        private static bool HasStandardSections(IHtmlCollection<IElement> elements)
+        {
+            foreach (var el in elements)
+            {
+                string text = el.TextContent;
+                if (text.Contains("特殊收容措施：") || text.Contains("描述："))
+                    return true;
+            }
+            return false;
+        }
+
         private static void ParseStandard(IElement divContent, ref SCPItem item)
         {
             var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
-            if (pContent.Count() <= 1)
+            if (!HasStandardSections(pContent))
             {
                 pContent = divContent.QuerySelectorAll("div.list-pages-item > p,ul,blockquote");
+            }
+            if (!HasStandardSections(pContent))
+            {
+                pContent = divContent.QuerySelectorAll(".listblock > p,.listblock > ul,.listblock > blockquote");
             }
             var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
 
@@ -128,6 +137,45 @@ namespace SCPView_WinUI.Data.Parser
 
             GetPContent(ref item, pContent);
             GetCollapsibleContent(ref item, collapsibleContent);
+            ExtractCompareBlocks(divContent, ref item);
+        }
+
+        private static void ExtractCompareBlocks(IElement divContent, ref SCPItem item)
+        {
+            var compares = divContent.QuerySelectorAll(".listblock .compare");
+            foreach (var compare in compares)
+            {
+                var header = compare.QuerySelector(".header");
+                string headerText = header?.TextContent.Trim() ?? "CSS Demo";
+
+                var codeBlocks = compare.QuerySelectorAll("div.code pre");
+                foreach (var codeBlock in codeBlocks)
+                {
+                    string text = codeBlock.TextContent.Trim();
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        item.CollapsibleContents.Add(new CollapsibleContent
+                        {
+                            Name = headerText,
+                            Content = text
+                        });
+                    }
+                }
+
+                var output = compare.QuerySelector(".output");
+                if (output != null)
+                {
+                    string outputText = output.TextContent.Trim();
+                    if (!string.IsNullOrEmpty(outputText))
+                    {
+                        item.CollapsibleContents.Add(new CollapsibleContent
+                        {
+                            Name = "输出",
+                            Content = outputText
+                        });
+                    }
+                }
+            }
         }
 
         private static SCPItem ParseStandard(IElement divContent, string name)
@@ -304,7 +352,8 @@ namespace SCPView_WinUI.Data.Parser
             {
                 string text = element.TextContent.Trim();
 
-                if (element.TagName.Equals("BLOCKQUOTE", StringComparison.OrdinalIgnoreCase))
+                if (element.TagName.Equals("BLOCKQUOTE", StringComparison.OrdinalIgnoreCase) ||
+                    element.ClassList.Contains("blockquote"))
                 {
                     var bq = new BlockQuoteContent();
                     bq.QuoteContent = text;
@@ -314,8 +363,8 @@ namespace SCPView_WinUI.Data.Parser
 
                 if (text.Contains("项目等级："))
                 {
-                    var span = element.QuerySelector("span");
-                    item.SafeLevel = span != null ? span.TextContent.Trim() : text;
+                    int idx = text.IndexOf("项目等级：");
+                    item.SafeLevel = text.Substring(idx + "项目等级：".Length).Trim();
                     section = ParseSection.Header;
                     continue;
                 }

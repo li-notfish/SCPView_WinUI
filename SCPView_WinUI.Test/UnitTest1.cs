@@ -132,5 +132,22 @@ namespace SCPView_WinUI.Test
             ClassicAssert.IsNotNull(list);
             Console.Write(list.Count());
         }
+
+        [Test]
+        public async Task TestSCP_CN_1064()
+        {
+            string url = "/scp-cn-1064";
+            var item = await SCPService.GetItemContent(url);
+            ClassicAssert.IsNotNull(item);
+            ClassicAssert.AreEqual("Keter", item.SafeLevel);
+            ClassicAssert.IsNotEmpty(item.SpecialMeasures);
+            ClassicAssert.IsNotEmpty(item.Contents);
+            Console.WriteLine($"Name: {item.Name}");
+            Console.WriteLine($"SafeLevel: {item.SafeLevel}");
+            Console.WriteLine($"SpecialMeasures length: {item.SpecialMeasures.Length}");
+            Console.WriteLine($"Contents length: {item.Contents.Length}");
+            Console.WriteLine($"CollapsibleContents: {item.CollapsibleContents.Count}");
+            Console.WriteLine($"BlockQuoteContents: {item.BlockQuoteContents.Count}");
+        }
     }
 }

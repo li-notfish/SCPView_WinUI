@@ -48,7 +48,7 @@ namespace SCPView_WinUI.Data.Parser
                 scpSeries.Add(new SCPSeries
                 {
                     SeriesName = item.TextContent,
-                    Href = item.Attributes[0].Value
+                    Href = item.GetAttribute("href") ?? ""
                 });
             }
             return scpSeries;

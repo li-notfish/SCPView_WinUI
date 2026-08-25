@@ -54,7 +54,7 @@ namespace SCPView_WinUI.Data.Parser
                 var tagA = scpName.QuerySelector("a");
                 if (tagA == null) continue;
                 var list = new SCPItemList();
-                list.Href = tagA.Attributes[0].Value;
+                list.Href = tagA.GetAttribute("href") ?? "";
                 list.HrefName = tagA.TextContent;
                 var innerText = scpName.TextContent.Replace(list.HrefName, "").Replace("-", "").TrimStart();
                 list.Name = innerText;
