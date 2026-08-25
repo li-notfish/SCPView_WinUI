@@ -150,10 +150,13 @@
                 Text="{Binding ScpItem.Name}"
                 TextWrapping="NoWrap" />
             <ProgressBar
-                x:Name="loadingProgressBar"
                 Grid.Column="1"
                 VerticalAlignment="Bottom"
-                IsIndeterminate="True" />
+                HorizontalContentAlignment="Stretch"
+                IsIndeterminate="True"
+                ShowError="False"
+                ShowPaused="False"
+                Visibility="{Binding ProcessBarVisibility}" />
         </Grid>
     </Grid>
 

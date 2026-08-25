@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Xaml;
 using SCPView_WinUI.Data;
 using SCPView_WinUI.Data.Model;
 using SCPView_WinUI.Services;
@@ -22,7 +23,7 @@ namespace SCPView_WinUI.ViewModels
         private ObservableGroupedCollection<string, CollapsibleContent> collapsibleContentCollection = new ObservableGroupedCollection<string, CollapsibleContent>();
 
         [ObservableProperty]
-        private bool isLoading;
+        private Visibility processBarVisibility = Visibility.Collapsed;
 
         private INavigationService _navigationService;
         private CancellationTokenSource? _cts;
@@ -51,7 +52,7 @@ namespace SCPView_WinUI.ViewModels
 
             try
             {
-                IsLoading = true;
+                ProcessBarVisibility = Visibility.Visible;
                 var contentData = await SCPService.GetItemContent(contentUrl);
                 if (token.IsCancellationRequested) return;
 
@@ -78,7 +79,7 @@ namespace SCPView_WinUI.ViewModels
             }
             finally
             {
-                IsLoading = false;
+                ProcessBarVisibility = Visibility.Collapsed;
             }
         }
 
