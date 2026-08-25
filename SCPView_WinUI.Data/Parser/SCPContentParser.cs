@@ -7,13 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SCPView_WinUI.Data.Parser
 {
     public class SCPContentParser
     {
-        public static SCPItem Parse(string body)
+        public static async Task<SCPItem> ParseAsync(string body)
         {
             SCPItem item = new SCPItem();
             var parser = new HtmlParser();
@@ -26,24 +27,27 @@ namespace SCPView_WinUI.Data.Parser
             var divContent = doc.QuerySelector("div#page-content");
             if (divContent == null) return item;
 
-            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
-            if (pContent.Count() <= 1)
+            item.PageType = DetectPageType(doc, divContent);
+
+            switch (item.PageType)
             {
-                pContent = divContent.QuerySelectorAll("div.list-pages-item > p,ul,blockquote");
+                case SCPPageType.Hub:
+                    ParseHub(divContent, ref item);
+                    break;
+                case SCPPageType.Embedded:
+                    await ParseEmbeddedAsync(divContent, item);
+                    break;
+                case SCPPageType.Complex:
+                    ParseComplex(divContent, ref item);
+                    break;
+                case SCPPageType.LongNarrative:
+                    ParseLongNarrative(divContent, ref item);
+                    break;
+                default:
+                    ParseStandard(divContent, ref item);
+                    break;
             }
-            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
 
-            var images = divContent.QuerySelectorAll("img");
-            item.ImageUrls = images
-                .Select(img => img.GetAttribute("src"))
-                .Where(src => !string.IsNullOrEmpty(src))
-                .ToList();
-
-            var tables = divContent.QuerySelectorAll("table");
-            item.Tables = tables.Select(t => t.TextContent.Trim()).ToList();
-
-            GetPContent(ref item, pContent);
-            GetCollapsibleContent(ref item, collapsibleContent);
             return item;
         }
 
@@ -70,6 +74,224 @@ namespace SCPView_WinUI.Data.Parser
                 item.Add(series);
             }
             return item;
+        }
+
+        private static SCPPageType DetectPageType(IHtmlDocument doc, IElement divContent)
+        {
+            if (divContent.QuerySelector("div.content-panel.standalone.series") != null)
+                return SCPPageType.Hub;
+
+            var iframes = divContent.QuerySelectorAll("iframe");
+            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
+            if (iframes.Length > 0 && pContent.Count() <= 1)
+                return SCPPageType.Embedded;
+
+            if (divContent.QuerySelector("div.expoblock,yui-navset,.listblock") != null)
+                return SCPPageType.Complex;
+
+            bool hasStandardSections = false;
+            foreach (var el in pContent)
+            {
+                string text = el.TextContent;
+                if (text.Contains("特殊收容措施：") || text.Contains("描述："))
+                {
+                    hasStandardSections = true;
+                    break;
+                }
+            }
+            if (hasStandardSections)
+                return SCPPageType.Standard;
+
+            if (pContent.Count() > 15)
+                return SCPPageType.LongNarrative;
+
+            return SCPPageType.Standard;
+        }
+
+        private static void ParseStandard(IElement divContent, ref SCPItem item)
+        {
+            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
+            if (pContent.Count() <= 1)
+            {
+                pContent = divContent.QuerySelectorAll("div.list-pages-item > p,ul,blockquote");
+            }
+            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
+
+            var images = divContent.QuerySelectorAll("img");
+            item.ImageUrls = images
+                .Select(img => img.GetAttribute("src"))
+                .Where(src => !string.IsNullOrEmpty(src))
+                .ToList();
+
+            var tables = divContent.QuerySelectorAll("table");
+            item.Tables = tables.Select(t => t.TextContent.Trim()).ToList();
+
+            GetPContent(ref item, pContent);
+            GetCollapsibleContent(ref item, collapsibleContent);
+        }
+
+        private static SCPItem ParseStandard(IElement divContent, string name)
+        {
+            SCPItem item = new SCPItem();
+            item.Name = name;
+            item.PageType = SCPPageType.Standard;
+            ParseStandard(divContent, ref item);
+            return item;
+        }
+
+        private static void ParseHub(IElement divContent, ref SCPItem item)
+        {
+            var contentPanels = divContent.QuerySelectorAll("div.content-panel.standalone.series");
+            if (contentPanels.Length == 0) return;
+
+            foreach (var contentPanel in contentPanels)
+            {
+                var links = contentPanel.QuerySelectorAll("a");
+                foreach (var link in links)
+                {
+                    string href = link.GetAttribute("href") ?? "";
+                    string name = link.TextContent.Trim();
+                    if (string.IsNullOrEmpty(href) || string.IsNullOrEmpty(name)) continue;
+                    if (href.StartsWith("/")) href = SCPUrl.REFERER + href;
+
+                    item.HubLinks.Add(new SCPItemList
+                    {
+                        Href = href,
+                        HrefName = name,
+                        Name = name
+                    });
+                }
+            }
+
+            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
+            GetCollapsibleContent(ref item, collapsibleContent);
+        }
+
+        private static async Task ParseEmbeddedAsync(IElement divContent, SCPItem item)
+        {
+            var iframe = divContent.QuerySelector("iframe");
+            if (iframe != null)
+            {
+                string src = iframe.GetAttribute("src") ?? "";
+                if (!string.IsNullOrEmpty(src))
+                {
+                    try
+                    {
+                        if (src.StartsWith("//")) src = "https:" + src;
+                        else if (src.StartsWith("/")) src = SCPUrl.REFERER + src;
+
+                        var context = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
+                        var iframeDoc = await context.OpenAsync(src) as IHtmlDocument;
+                        if (iframeDoc != null)
+                        {
+                            var iframeContent = iframeDoc.QuerySelector("div#page-content");
+                            if (iframeContent != null)
+                            {
+                                var parsed = ParseStandard(iframeContent, item.Name);
+                                item.SafeLevel = parsed.SafeLevel;
+                                item.SpecialMeasures = parsed.SpecialMeasures;
+                                item.Contents = parsed.Contents;
+                                item.CollapsibleContents = parsed.CollapsibleContents;
+                                item.BlockQuoteContents = parsed.BlockQuoteContents;
+                                item.ImageUrls = parsed.ImageUrls;
+                                item.Tables = parsed.Tables;
+                                item.Footnotes = parsed.Footnotes;
+                                return;
+                            }
+                        }
+                    }
+                    catch { }
+                    item.Contents = src;
+                }
+            }
+
+            var pContent = divContent.QuerySelectorAll(":scope > p");
+            if (pContent.Count() > 0)
+            {
+                var descBuilder = new StringBuilder();
+                foreach (var p in pContent)
+                {
+                    descBuilder.AppendLine(p.TextContent.Trim());
+                }
+                item.SpecialMeasures = descBuilder.ToString().Trim();
+            }
+        }
+
+        private static void ParseComplex(IElement divContent, ref SCPItem item)
+        {
+            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
+            GetPContent(ref item, pContent);
+
+            var expoblocks = divContent.QuerySelectorAll("div.expoblock");
+            foreach (var block in expoblocks)
+            {
+                string text = block.TextContent.Trim();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    item.CollapsibleContents.Add(new CollapsibleContent
+                    {
+                        Name = "展开内容",
+                        Content = text
+                    });
+                }
+            }
+
+            var listblocks = divContent.QuerySelectorAll(".listblock");
+            foreach (var block in listblocks)
+            {
+                var items = block.QuerySelectorAll("li");
+                foreach (var li in items)
+                {
+                    string text = li.TextContent.Trim();
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        item.Contents += text + "\n";
+                    }
+                }
+            }
+
+            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
+            GetCollapsibleContent(ref item, collapsibleContent);
+
+            var images = divContent.QuerySelectorAll("img");
+            item.ImageUrls = images
+                .Select(img => img.GetAttribute("src"))
+                .Where(src => !string.IsNullOrEmpty(src))
+                .ToList();
+
+            var tables = divContent.QuerySelectorAll("table");
+            item.Tables = tables.Select(t => t.TextContent.Trim()).ToList();
+
+            item.Contents = item.Contents.Trim();
+        }
+
+        private static void ParseLongNarrative(IElement divContent, ref SCPItem item)
+        {
+            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
+            GetPContent(ref item, pContent);
+
+            var footnotes = divContent.QuerySelectorAll("sup > a,div.footnotes-footer");
+            int fnId = 1;
+            foreach (var fn in footnotes)
+            {
+                string text = fn.TextContent.Trim();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    item.Footnotes.Add(new SCPFootnote(fnId++, text));
+                }
+            }
+
+            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
+            GetCollapsibleContent(ref item, collapsibleContent);
+
+            var images = divContent.QuerySelectorAll("img");
+            item.ImageUrls = images
+                .Select(img => img.GetAttribute("src"))
+                .Where(src => !string.IsNullOrEmpty(src))
+                .ToList();
+
+            var tables = divContent.QuerySelectorAll("table");
+            item.Tables = tables.Select(t => t.TextContent.Trim()).ToList();
         }
 
         private static void GetPContent(ref SCPItem item, IHtmlCollection<IElement> elements)

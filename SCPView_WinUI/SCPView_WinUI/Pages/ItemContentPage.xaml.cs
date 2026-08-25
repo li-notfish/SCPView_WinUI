@@ -5,8 +5,10 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using SCPView_WinUI.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -26,6 +28,26 @@ namespace SCPView_WinUI.Pages
         public ItemContentPage()
         {
             this.InitializeComponent();
+            this.DataContextChanged += ItemContentPage_DataContextChanged;
+        }
+
+        private void ItemContentPage_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+        {
+            if (args.NewValue is ItemContentPageViewModel vm)
+            {
+                vm.PropertyChanged += Vm_PropertyChanged;
+            }
+        }
+
+        private void Vm_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ItemContentPageViewModel.IsLoading))
+            {
+                if (sender is ItemContentPageViewModel vm)
+                {
+                    loadingProgressBar.Visibility = vm.IsLoading ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
         }
     }
 }

@@ -21,6 +21,9 @@ namespace SCPView_WinUI.ViewModels
         [ObservableProperty]
         private ObservableGroupedCollection<string, CollapsibleContent> collapsibleContentCollection = new ObservableGroupedCollection<string, CollapsibleContent>();
 
+        [ObservableProperty]
+        private bool isLoading;
+
         private INavigationService _navigationService;
         private CancellationTokenSource? _cts;
 
@@ -48,6 +51,7 @@ namespace SCPView_WinUI.ViewModels
 
             try
             {
+                IsLoading = true;
                 var contentData = await SCPService.GetItemContent(contentUrl);
                 if (token.IsCancellationRequested) return;
 
@@ -71,6 +75,10 @@ namespace SCPView_WinUI.ViewModels
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 

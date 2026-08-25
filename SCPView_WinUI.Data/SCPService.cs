@@ -119,7 +119,7 @@ namespace SCPView_WinUI.Data
                 if (response.IsSuccessful)
                 {
                     string body = response.Content;
-                    return SCPContentParser.Parse(body);
+                    return await SCPContentParser.ParseAsync(body);
                 }
                 return new SCPItem();
             });

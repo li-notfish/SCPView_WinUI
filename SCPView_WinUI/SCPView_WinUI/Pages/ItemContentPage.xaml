@@ -43,6 +43,21 @@
                     Text="{Binding ScpItem.Contents, Mode=OneWay}"
                     TextWrapping="Wrap" />
                 <ListView
+                    ItemsSource="{Binding ScpItem.HubLinks}"
+                    IsItemClickEnabled="True"
+                    IsSwipeEnabled="False"
+                    SelectionMode="None">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="model:SCPItemList">
+                            <TextBlock
+                                FontSize="16"
+                                Style="{StaticResource BodyTextBlockStyle}"
+                                Text="{Binding HrefName}"
+                                TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <ListView
                     ItemsSource="{Binding ScpItem.BlockQuoteContents}"
                     IsItemClickEnabled="False"
                     IsSwipeEnabled="False"
@@ -85,6 +100,27 @@
                         </GroupStyle>
                     </ListView.GroupStyle>
                 </ListView>
+                <ListView
+                    ItemsSource="{Binding ScpItem.Footnotes}"
+                    IsItemClickEnabled="False"
+                    IsSwipeEnabled="False"
+                    SelectionMode="None">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="model:SCPFootnote">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock
+                                    FontSize="14"
+                                    FontWeight="Bold"
+                                    Text="{Binding Id}" />
+                                <TextBlock
+                                    FontSize="14"
+                                    Style="{StaticResource BodyTextBlockStyle}"
+                                    Text="{Binding Content}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
             </StackPanel>
         </ScrollView>
@@ -113,6 +149,11 @@
                 Style="{StaticResource HeaderTextBlockStyle}"
                 Text="{Binding ScpItem.Name}"
                 TextWrapping="NoWrap" />
+            <ProgressBar
+                x:Name="loadingProgressBar"
+                Grid.Column="1"
+                VerticalAlignment="Bottom"
+                IsIndeterminate="True" />
         </Grid>
     </Grid>
 

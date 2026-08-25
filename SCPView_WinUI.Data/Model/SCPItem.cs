@@ -16,6 +16,9 @@ namespace SCPView_WinUI.Data.Model
         public List<BlockQuoteContent> BlockQuoteContents { get; set; }
         public List<string> ImageUrls { get; set; }
         public List<string> Tables { get; set; }
+        public SCPPageType PageType { get; set; }
+        public List<SCPItemList> HubLinks { get; set; }
+        public List<SCPFootnote> Footnotes { get; set; }
 
         public SCPItem()
         {
@@ -27,6 +30,9 @@ namespace SCPView_WinUI.Data.Model
             BlockQuoteContents = new List<BlockQuoteContent>();
             ImageUrls = new List<string>();
             Tables = new List<string>();
+            PageType = SCPPageType.Standard;
+            HubLinks = new List<SCPItemList>();
+            Footnotes = new List<SCPFootnote>();
         }
     }
 }
