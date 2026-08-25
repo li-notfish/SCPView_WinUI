@@ -43,6 +43,25 @@
                     Text="{Binding ScpItem.Contents, Mode=OneWay}"
                     TextWrapping="Wrap" />
                 <ListView
+                    ItemsSource="{Binding ScpItem.BlockQuoteContents}"
+                    IsItemClickEnabled="False"
+                    IsSwipeEnabled="False"
+                    SelectionMode="None">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="model:BlockQuoteContent">
+                            <Border Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
+                                    Padding="12" Margin="0,4"
+                                    CornerRadius="4">
+                                <TextBlock
+                                    FontSize="16"
+                                    Style="{StaticResource BodyTextBlockStyle}"
+                                    Text="{Binding QuoteContent}"
+                                    TextWrapping="Wrap" />
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <ListView
                     x:Name="CollapsibleContent"
                     IsItemClickEnabled="False"
                     IsSwipeEnabled="False"
