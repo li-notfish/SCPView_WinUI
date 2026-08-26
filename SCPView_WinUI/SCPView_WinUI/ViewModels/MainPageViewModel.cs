@@ -41,6 +41,12 @@ namespace SCPView_WinUI.ViewModels
         [ObservableProperty]
         private bool hasBannerImage = false;
 
+        [ObservableProperty]
+        private bool hasContestLink = false;
+
+        [ObservableProperty]
+        private string contestTitle = string.Empty;
+
         public MainPageViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
@@ -64,9 +70,16 @@ namespace SCPView_WinUI.ViewModels
                 }
                 if(bannerData != null)
                 {
+                    Banner = bannerData;
                     HasBannerImage = !string.IsNullOrEmpty(bannerData.BannerImagePath);
                     BannerImage.UriSource = new Uri(bannerData.BannerImagePath);
                     BannerText = bannerData.BannerText;
+                    HasContestLink = !string.IsNullOrEmpty(bannerData.BannerLink);
+
+                    if (HasContestLink)
+                    {
+                        _ = LoadContestTitle(bannerData.BannerLink);
+                    }
                 }
                 ProcessBarVisibility = Visibility.Collapsed;
             }
@@ -77,6 +90,16 @@ namespace SCPView_WinUI.ViewModels
             }
             
             
+        }
+
+        private async Task LoadContestTitle(string contestUrl)
+        {
+            try
+            {
+                var contestData = await SCPService.GetContestList(contestUrl);
+                ContestTitle = contestData.Title;
+            }
+            catch { }
         }
 
         [RelayCommand]

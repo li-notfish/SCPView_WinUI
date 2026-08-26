@@ -94,10 +94,31 @@
                             Margin="16"
                             VerticalAlignment="Top"
                             HorizontalAlignment="Left"
+                            FontWeight="Bold"
+                            FontSize="20"
+                            Foreground="Black"
+                            Text="{Binding ContestTitle}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Margin="16"
+                            VerticalAlignment="Bottom"
+                            HorizontalAlignment="Left"
                             Foreground="Black"
                             Style="{StaticResource BodyStrongTextBlockStyle}"
                             Text="{Binding BannerText}"
                             TextWrapping="Wrap" />
+                        <Button
+                            Command="{Binding ToContestListPageCommand}"
+                            Visibility="{Binding HasContestLink, Converter={StaticResource BoolToVisConverter}}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,16,16"
+                            Width="48"
+                            Height="48"
+                            CornerRadius="24"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72A;" />
+                        </Button>
                     </Grid>
                 </DataTemplate>
             </HubSection>
@@ -117,16 +138,6 @@
                                 <GroupStyle HeaderTemplate="{StaticResource ZoomedInGroupHeaderTemplate}" />
                             </GridView.GroupStyle>
                         </GridView>
-                    </StackPanel>
-                </DataTemplate>
-            </HubSection>
-            <HubSection Width="300" Header="征文竞赛">
-                <DataTemplate>
-                    <StackPanel Orientation="Vertical" Spacing="8">
-                        <Button
-                            Command="{Binding ToContestListPageCommand}"
-                            Content="查看征文列表"
-                            Style="{StaticResource AccentButtonStyle}" />
                     </StackPanel>
                 </DataTemplate>
             </HubSection>
