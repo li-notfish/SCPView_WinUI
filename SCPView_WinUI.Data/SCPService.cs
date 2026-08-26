@@ -1,4 +1,5 @@
-﻿using RestSharp;
+﻿using AngleSharp.Html.Parser;
+using RestSharp;
 using SCPView_WinUI.Data.Model;
 using SCPView_WinUI.Data.Parser;
 using SCPView_WinUI.Data.Storage;
@@ -167,7 +168,7 @@ namespace SCPView_WinUI.Data
 
         public static async Task<SCPBanner> GetBanner()
         {
-            return await WithRetry(async () =>
+            var banner = await WithRetry(async () =>
             {
                 var options = new RestClientOptions(SCPUrl.REFERER);
                 var client = GetClient(options);
@@ -179,6 +180,29 @@ namespace SCPView_WinUI.Data
                 }
                 return new SCPBanner();
             });
+
+            if (banner != null && !string.IsNullOrEmpty(banner.BannerLink))
+            {
+                try
+                {
+                    var options = new RestClientOptions(SCPUrl.REFERER);
+                    var client = GetClient(options);
+                    var response = await client.GetAsync(new RestRequest(banner.BannerLink));
+                    if (response.IsSuccessful)
+                    {
+                        var parser = new HtmlParser();
+                        var doc = parser.ParseDocument(response.Content);
+                        var blockquote = doc.QuerySelector("blockquote");
+                        if (blockquote != null)
+                        {
+                            banner.BannerText = blockquote.TextContent.Trim();
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            return banner ?? new SCPBanner();
         }
 
         public static void ClearCache()

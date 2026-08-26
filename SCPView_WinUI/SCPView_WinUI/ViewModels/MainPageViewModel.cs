@@ -35,6 +35,12 @@ namespace SCPView_WinUI.ViewModels
         [ObservableProperty]
         private BitmapImage bannerImage = new BitmapImage();
 
+        [ObservableProperty]
+        private string bannerText = string.Empty;
+
+        [ObservableProperty]
+        private bool hasBannerImage = false;
+
         public MainPageViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
@@ -58,7 +64,9 @@ namespace SCPView_WinUI.ViewModels
                 }
                 if(bannerData != null)
                 {
+                    HasBannerImage = !string.IsNullOrEmpty(bannerData.BannerImagePath);
                     BannerImage.UriSource = new Uri(bannerData.BannerImagePath);
+                    BannerText = bannerData.BannerText;
                 }
                 ProcessBarVisibility = Visibility.Collapsed;
             }

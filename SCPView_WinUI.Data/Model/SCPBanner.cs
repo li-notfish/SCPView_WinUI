@@ -9,15 +9,14 @@ namespace SCPView_WinUI.Data.Model
     public class SCPBanner
     {
         public string BannerImagePath { get; set; }
+        public string BannerLink { get; set; }
+        public string BannerText { get; set; }
 
         public SCPBanner()
         {
             BannerImagePath = string.Empty;
-        }
-
-        public SCPBanner(string bannerImagePath)
-        {
-            this.BannerImagePath = bannerImagePath;
+            BannerLink = string.Empty;
+            BannerText = string.Empty;
         }
     }
 }

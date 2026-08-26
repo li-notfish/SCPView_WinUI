@@ -6,11 +6,14 @@
     xmlns:local="using:SCPView_WinUI.Pages"
     xmlns:localData="using:SCPView_WinUI.Data.Model"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:SCPView_WinUI.Converters"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     DataContext="{Binding Path=MainPage, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
 
     <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisConverter" />
+
         <CollectionViewSource
             x:Name="SCPMenuItemGroup"
             IsSourceGrouped="True"
@@ -20,7 +23,7 @@
         <DataTemplate x:Key="ZoomedInTemplate" x:DataType="localData:SCPSeries">
             <StackPanel>
                 <Button
-                    Command="{Binding ElementName=Page, Path=DataContext.ToItemListPageCommand}"
+                    Command="{Binding ElementName=rootGrid, Path=DataContext.ToItemListPageCommand}"
                     CommandParameter="{x:Bind}"
                     Content="{x:Bind SeriesName}"
                     Style="{StaticResource AccentButtonStyle}" />
@@ -35,7 +38,7 @@
         </DataTemplate>
     </Page.Resources>
 
-    <Grid x:Name="Page" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid x:Name="rootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.ChildrenTransitions>
             <TransitionCollection>
                 <EntranceThemeTransition />
@@ -79,9 +82,24 @@
                 </Grid>
             </Hub.Header>
             <HubSection Width="1280" Margin="0,0,80,0">
-                <HubSection.Background>
-                    <ImageBrush ImageSource="{Binding BannerImage}" />
-                </HubSection.Background>
+                <DataTemplate>
+                    <Grid MinHeight="200">
+                        <Image
+                            Source="{Binding BannerImage}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Stretch="UniformToFill"
+                            Visibility="{Binding HasBannerImage, Converter={StaticResource BoolToVisConverter}}" />
+                        <TextBlock
+                            Margin="16"
+                            VerticalAlignment="Bottom"
+                            HorizontalAlignment="Left"
+                            Foreground="Black"
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="{Binding BannerText}"
+                            TextWrapping="Wrap" />
+                    </Grid>
+                </DataTemplate>
             </HubSection>
             <HubSection
                 x:Name="HomeSection"

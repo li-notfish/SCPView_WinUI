@@ -11,11 +11,27 @@ namespace SCPView_WinUI.Data.Parser
             SCPBanner banner = new SCPBanner();
             var parser = new HtmlParser();
             var doc = parser.ParseDocument(body);
-            var bannerImage = doc.QuerySelector("div.summer-contest-banner > a > img");
+
+            var bannerDiv = doc.QuerySelector("div.summercontest");
+            if (bannerDiv == null) return banner;
+
+            var link = bannerDiv.QuerySelector("a");
+            if (link != null)
+            {
+                string href = link.GetAttribute("href") ?? "";
+                if (!string.IsNullOrEmpty(href))
+                {
+                    if (href.StartsWith("/")) href = SCPUrl.REFERER + href;
+                    banner.BannerLink = href;
+                }
+            }
+
+            var bannerImage = bannerDiv.QuerySelector("img");
             if (bannerImage != null)
             {
-                banner.BannerImagePath = bannerImage.GetAttribute("src");
+                banner.BannerImagePath = bannerImage.GetAttribute("src") ?? "";
             }
+
             return banner;
         }
     }
