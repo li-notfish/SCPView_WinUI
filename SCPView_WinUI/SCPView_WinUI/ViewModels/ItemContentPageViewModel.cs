@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using SCPView_WinUI.Data;
 using SCPView_WinUI.Data.Model;
+using SCPView_WinUI.Pages;
 using SCPView_WinUI.Services;
 using System;
 using System.Collections.Generic;
@@ -82,6 +83,12 @@ namespace SCPView_WinUI.ViewModels
             {
                 ProcessBarVisibility = Visibility.Collapsed;
             }
+        }
+
+        [RelayCommand]
+        private void GoToHubContent(SCPItemList item)
+        {
+            _navigationService.NavigateTo(nameof(ItemContentPage), item);
         }
 
         [RelayCommand]

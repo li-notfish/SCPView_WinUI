@@ -285,15 +285,29 @@ namespace SCPView_WinUI.Data.Parser
                 foreach (var link in links)
                 {
                     string href = link.GetAttribute("href") ?? "";
-                    string name = link.TextContent.Trim();
-                    if (string.IsNullOrEmpty(href) || string.IsNullOrEmpty(name)) continue;
+                    string codeName = link.TextContent.Trim();
+                    if (string.IsNullOrEmpty(href) || string.IsNullOrEmpty(codeName)) continue;
                     if (href.StartsWith("/")) href = SCPUrl.REFERER + href;
+
+                    string descriptiveName = "";
+                    var parentP = link.Parent;
+                    if (parentP != null)
+                    {
+                        string fullText = parentP.TextContent.Trim();
+                        string linkText = link.TextContent.Trim();
+                        int idx = fullText.LastIndexOf(linkText);
+                        if (idx >= 0)
+                        {
+                            descriptiveName = fullText.Substring(idx + linkText.Length)
+                                .Trim().TrimStart('-').Trim();
+                        }
+                    }
 
                     item.HubLinks.Add(new SCPItemList
                     {
                         Href = href,
-                        HrefName = name,
-                        Name = name
+                        HrefName = codeName,
+                        Name = descriptiveName
                     });
                 }
             }

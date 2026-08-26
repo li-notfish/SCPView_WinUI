@@ -64,14 +64,27 @@
                     ItemsSource="{Binding ScpItem.HubLinks}"
                     IsItemClickEnabled="True"
                     IsSwipeEnabled="False"
+                    ItemClick="HubLinksListView_ItemClick"
                     SelectionMode="None">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="model:SCPItemList">
-                            <TextBlock
-                                FontSize="16"
-                                Style="{StaticResource BodyTextBlockStyle}"
-                                Text="{Binding HrefName}"
-                                TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Spacing="0">
+                                <TextBlock
+                                    FontSize="16"
+                                    Style="{StaticResource BodyTextBlockStyle}"
+                                    Text="{Binding HrefName}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    FontSize="16"
+                                    Style="{StaticResource BodyTextBlockStyle}"
+                                    Text=" —— "
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    FontSize="16"
+                                    Style="{StaticResource BodyTextBlockStyle}"
+                                    Text="{Binding Name}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
