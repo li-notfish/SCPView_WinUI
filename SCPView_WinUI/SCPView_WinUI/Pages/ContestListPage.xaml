@@ -24,6 +24,7 @@
             <ListView
                 x:Name="ContestListView"
                 IsItemClickEnabled="True"
+                ItemClick="ContestListView_ItemClick"
                 ItemsSource="{Binding ContestItems}"
                 SelectionMode="None">
                 <ListView.ItemTemplate>

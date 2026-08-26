@@ -5,16 +5,17 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:SCPView_WinUI.Pages"
+    xmlns:model="using:SCPView_WinUI.Data.Model"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:SCPView_WinUI.Converters"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     DataContext="{Binding Path=TalesListPage, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
 
-    <!--
-        This grid acts as a root panel for the page that defines two rows:
-        * Row 0 contains the back button and page title
-        * Row 1 contains the rest of the page layout
-    -->
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisConverter" />
+    </Page.Resources>
+
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.ChildrenTransitions>
             <TransitionCollection>
@@ -26,18 +27,32 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.RowSpan="2">
-            <TextBlock
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                FontSize="50"
-                FontWeight="Bold"
-                Text="It just Work!"
-                TextAlignment="Center" />
-        </StackPanel>
+        <ScrollView Grid.Row="1">
+            <ListView
+                x:Name="TalesListView"
+                IsItemClickEnabled="True"
+                ItemClick="TalesListView_ItemClick"
+                ItemsSource="{Binding Items}"
+                SelectionMode="None">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="model:SCPItemList">
+                        <StackPanel Margin="10" Orientation="Horizontal">
+                            <TextBlock
+                                Style="{StaticResource SubtitleTextBlockStyle}"
+                                Text="{Binding HrefName}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="12,0,0,0"
+                                Style="{StaticResource SubtitleTextBlockStyle}"
+                                Text="{Binding Name}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </ScrollView>
 
-        <!--  Back button and page title  -->
-        <Grid>
+        <Grid Background="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120" />
                 <ColumnDefinition Width="*" />
@@ -53,14 +68,23 @@
                 Style="{StaticResource NavigationBackButtonNormalStyle}" />
             <TextBlock
                 x:Name="pageTitle"
-                x:Uid="Section3Header.Text"
                 Grid.Column="1"
                 Margin="0,0,30,40"
                 VerticalAlignment="Bottom"
-                IsHitTestVisible="false"
+                FontWeight="ExtraBold"
+                Foreground="White"
+                IsHitTestVisible="False"
                 Style="{StaticResource HeaderTextBlockStyle}"
-                Text="Tales Editon"
+                Text="{Binding SeriesTitle}"
                 TextWrapping="NoWrap" />
+            <ProgressBar
+                Grid.Column="1"
+                VerticalAlignment="Bottom"
+                HorizontalContentAlignment="Stretch"
+                IsIndeterminate="True"
+                ShowError="False"
+                ShowPaused="False"
+                Visibility="{Binding ProcessBarVisibility}" />
         </Grid>
     </Grid>
 </Page>
