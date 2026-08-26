@@ -50,6 +50,24 @@ namespace SCPView_WinUI.Data.Storage
                     cached_at TEXT NOT NULL
                 )";
             cmd2.ExecuteNonQuery();
+
+            string[] alterColumns = {
+                "ALTER TABLE cache_items ADD COLUMN page_type TEXT DEFAULT 'Standard'",
+                "ALTER TABLE cache_items ADD COLUMN hub_links TEXT DEFAULT '[]'",
+                "ALTER TABLE cache_items ADD COLUMN footnotes TEXT DEFAULT '[]'",
+                "ALTER TABLE cache_items ADD COLUMN content_blocks TEXT DEFAULT '[]'",
+                "ALTER TABLE cache_items ADD COLUMN sub_page_urls TEXT DEFAULT '[]'"
+            };
+            foreach (var sql in alterColumns)
+            {
+                try
+                {
+                    var alterCmd = _connection.CreateCommand();
+                    alterCmd.CommandText = sql;
+                    alterCmd.ExecuteNonQuery();
+                }
+                catch { }
+            }
         }
 
         public SCPItem? Get(string url)
@@ -57,7 +75,8 @@ namespace SCPView_WinUI.Data.Storage
             var cmd = _connection.CreateCommand();
             cmd.CommandText = @"
                 SELECT name, safe_level, special_measures, contents,
-                       collapsible_contents, blockquote_contents, image_urls, tables
+                       collapsible_contents, blockquote_contents, image_urls, tables,
+                       page_type, hub_links, footnotes, content_blocks, sub_page_urls
                 FROM cache_items WHERE url = @url";
             cmd.Parameters.AddWithValue("@url", url);
 
@@ -73,7 +92,12 @@ namespace SCPView_WinUI.Data.Storage
                 CollapsibleContents = JsonSerializer.Deserialize<List<CollapsibleContent>>(reader.GetString(4)) ?? new(),
                 BlockQuoteContents = JsonSerializer.Deserialize<List<BlockQuoteContent>>(reader.GetString(5)) ?? new(),
                 ImageUrls = JsonSerializer.Deserialize<List<string>>(reader.GetString(6)) ?? new(),
-                Tables = JsonSerializer.Deserialize<List<string>>(reader.GetString(7)) ?? new()
+                Tables = JsonSerializer.Deserialize<List<string>>(reader.GetString(7)) ?? new(),
+                PageType = Enum.TryParse<SCPPageType>(reader.GetString(8), true, out var pt) ? pt : SCPPageType.Standard,
+                HubLinks = JsonSerializer.Deserialize<List<SCPItemList>>(reader.GetString(9)) ?? new(),
+                Footnotes = JsonSerializer.Deserialize<List<SCPFootnote>>(reader.GetString(10)) ?? new(),
+                ContentBlocks = JsonSerializer.Deserialize<List<ContentBlock>>(reader.GetString(11)) ?? new(),
+                SubPageUrls = JsonSerializer.Deserialize<List<string>>(reader.GetString(12)) ?? new()
             };
         }
 
@@ -83,10 +107,12 @@ namespace SCPView_WinUI.Data.Storage
             cmd.CommandText = @"
                 INSERT OR REPLACE INTO cache_items
                     (url, name, safe_level, special_measures, contents,
-                     collapsible_contents, blockquote_contents, image_urls, tables, cached_at)
+                     collapsible_contents, blockquote_contents, image_urls, tables,
+                     page_type, hub_links, footnotes, content_blocks, sub_page_urls, cached_at)
                 VALUES
                     (@url, @name, @safe_level, @special_measures, @contents,
-                     @collapsible_contents, @blockquote_contents, @image_urls, @tables, @cached_at)";
+                     @collapsible_contents, @blockquote_contents, @image_urls, @tables,
+                     @page_type, @hub_links, @footnotes, @content_blocks, @sub_page_urls, @cached_at)";
 
             cmd.Parameters.AddWithValue("@url", url);
             cmd.Parameters.AddWithValue("@name", item.Name);
@@ -97,6 +123,11 @@ namespace SCPView_WinUI.Data.Storage
             cmd.Parameters.AddWithValue("@blockquote_contents", JsonSerializer.Serialize(item.BlockQuoteContents));
             cmd.Parameters.AddWithValue("@image_urls", JsonSerializer.Serialize(item.ImageUrls));
             cmd.Parameters.AddWithValue("@tables", JsonSerializer.Serialize(item.Tables));
+            cmd.Parameters.AddWithValue("@page_type", item.PageType.ToString());
+            cmd.Parameters.AddWithValue("@hub_links", JsonSerializer.Serialize(item.HubLinks));
+            cmd.Parameters.AddWithValue("@footnotes", JsonSerializer.Serialize(item.Footnotes));
+            cmd.Parameters.AddWithValue("@content_blocks", JsonSerializer.Serialize(item.ContentBlocks));
+            cmd.Parameters.AddWithValue("@sub_page_urls", JsonSerializer.Serialize(item.SubPageUrls));
             cmd.Parameters.AddWithValue("@cached_at", DateTime.UtcNow.ToString("o"));
 
             cmd.ExecuteNonQuery();

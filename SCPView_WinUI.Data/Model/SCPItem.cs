@@ -19,6 +19,8 @@ namespace SCPView_WinUI.Data.Model
         public SCPPageType PageType { get; set; }
         public List<SCPItemList> HubLinks { get; set; }
         public List<SCPFootnote> Footnotes { get; set; }
+        public List<ContentBlock> ContentBlocks { get; set; }
+        public List<string> SubPageUrls { get; set; }
 
         public SCPItem()
         {
@@ -33,6 +35,8 @@ namespace SCPView_WinUI.Data.Model
             PageType = SCPPageType.Standard;
             HubLinks = new List<SCPItemList>();
             Footnotes = new List<SCPFootnote>();
+            ContentBlocks = new List<ContentBlock>();
+            SubPageUrls = new List<string>();
         }
     }
 }

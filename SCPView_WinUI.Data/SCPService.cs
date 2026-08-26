@@ -132,7 +132,58 @@ namespace SCPView_WinUI.Data
                 return new SCPItem();
             });
 
-            if (item != null && !string.IsNullOrEmpty(item.Name))
+            if (item == null) return new SCPItem();
+
+            int depth = 0;
+            while (item.SubPageUrls.Count > 0 && depth < 3)
+            {
+                var currentUrls = new List<string>(item.SubPageUrls);
+                item.SubPageUrls.Clear();
+
+                foreach (var subUrl in currentUrls)
+                {
+                    try
+                    {
+                        var subItem = await WithRetry(async () =>
+                        {
+                            var options = new RestClientOptions(SCPUrl.REFERER);
+                            var client = GetClient(options);
+                            var request = new RestRequest(subUrl);
+                            var response = await client.GetAsync(request);
+                            if (response.IsSuccessful)
+                            {
+                                string body = response.Content;
+                                return await SCPContentParser.ParseAsync(body);
+                            }
+                            return (SCPItem?)null;
+                        });
+
+                        if (subItem != null && !string.IsNullOrEmpty(subItem.Name))
+                        {
+                            if (!string.IsNullOrEmpty(subItem.Contents))
+                            {
+                                if (!string.IsNullOrEmpty(item.Contents))
+                                    item.Contents += "\n\n";
+                                item.Contents += subItem.Contents;
+                            }
+                            item.ContentBlocks.AddRange(subItem.ContentBlocks);
+                            item.BlockQuoteContents.AddRange(subItem.BlockQuoteContents);
+                            item.ImageUrls.AddRange(subItem.ImageUrls);
+                            item.Tables.AddRange(subItem.Tables);
+
+                            foreach (var subPageUrl in subItem.SubPageUrls)
+                            {
+                                if (!item.SubPageUrls.Contains(subPageUrl))
+                                    item.SubPageUrls.Add(subPageUrl);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                depth++;
+            }
+
+            if (!string.IsNullOrEmpty(item.Name))
             {
                 try { Database.Set(scpContentUrl, item); }
                 catch (Exception ex)
@@ -141,7 +192,7 @@ namespace SCPView_WinUI.Data
                 }
             }
 
-            return item ?? new SCPItem();
+            return item;
         }
 
         /// <summary>

@@ -27,6 +27,8 @@ namespace SCPView_WinUI.Data.Parser
             var divContent = doc.QuerySelector("div#page-content");
             if (divContent == null) return item;
 
+            RemoveJunkElements(divContent);
+
             item.PageType = DetectPageType(doc, divContent);
 
             switch (item.PageType)
@@ -76,33 +78,85 @@ namespace SCPView_WinUI.Data.Parser
             return item;
         }
 
+        private static List<IElement> CollectElements(IElement divContent)
+        {
+            var result = new List<IElement>();
+            CollectFromNode(divContent, result, 0);
+            return result;
+        }
+
+        private static void CollectFromNode(IElement node, List<IElement> result, int depth)
+        {
+            if (depth > 5) return;
+            foreach (var child in node.Children)
+            {
+                string tag = child.TagName.ToUpperInvariant();
+                if (tag == "P" || tag == "UL" || tag == "BLOCKQUOTE")
+                {
+                    result.Add(child);
+                }
+                else if (tag == "DIV")
+                {
+                    if (child.ClassList.Contains("footer-wikiwalk-nav"))
+                        continue;
+
+                    if (child.ClassList.Contains("yui-navset"))
+                    {
+                        var tabContent = child.QuerySelector("div.yui-content");
+                        if (tabContent != null)
+                            CollectFromNode(tabContent, result, depth + 1);
+                        continue;
+                    }
+
+                    if (child.Id != null && child.Id.StartsWith("wiki-tab-"))
+                    {
+                        CollectFromNode(child, result, depth + 1);
+                        continue;
+                    }
+
+                    bool hasContent = false;
+                    foreach (var desc in child.Descendants<IElement>())
+                    {
+                        string dt = desc.TagName.ToUpperInvariant();
+                        if (dt == "P" || dt == "UL" || dt == "BLOCKQUOTE")
+                        {
+                            hasContent = true;
+                            break;
+                        }
+                    }
+                    if (hasContent)
+                        CollectFromNode(child, result, depth + 1);
+                }
+            }
+        }
+
         private static SCPPageType DetectPageType(IHtmlDocument doc, IElement divContent)
         {
             if (divContent.QuerySelector("div.content-panel.standalone.series") != null)
                 return SCPPageType.Hub;
 
             var iframes = divContent.QuerySelectorAll("iframe");
-            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
-            if (iframes.Length > 0 && pContent.Count() <= 1)
+            var pContent = CollectElements(divContent);
+            if (iframes.Length > 0 && pContent.Count <= 1)
                 return SCPPageType.Embedded;
 
             if (HasStandardSections(pContent))
                 return SCPPageType.Standard;
 
-            var listblockPContent = divContent.QuerySelectorAll(".listblock > p");
+            var listblockPContent = divContent.QuerySelectorAll(".listblock > p").ToList();
             if (HasStandardSections(listblockPContent))
                 return SCPPageType.Standard;
 
             if (divContent.QuerySelector("div.expoblock,.yui-navset,.listblock") != null)
                 return SCPPageType.Complex;
 
-            if (pContent.Count() > 15)
+            if (pContent.Count > 15)
                 return SCPPageType.LongNarrative;
 
             return SCPPageType.Standard;
         }
 
-        private static bool HasStandardSections(IHtmlCollection<IElement> elements)
+        private static bool HasStandardSections(System.Collections.Generic.List<IElement> elements)
         {
             foreach (var el in elements)
             {
@@ -113,18 +167,52 @@ namespace SCPView_WinUI.Data.Parser
             return false;
         }
 
+        private static void RemoveJunkElements(IElement divContent)
+        {
+            var junk = divContent.QuerySelectorAll(
+                "div.colmod-block.creditHorm,div.page-rate-widget-box,#u-credit-view,div.footer-wikiwalk-nav");
+            foreach (var j in junk) j.Remove();
+
+            var listBoxes = divContent.QuerySelectorAll("div.list-pages-box");
+            foreach (var lb in listBoxes)
+            {
+                if (lb.QuerySelector("div.list-pages-item") == null)
+                    lb.Remove();
+            }
+        }
+
+        private static bool IsSubPageLink(IElement element)
+        {
+            if (!element.TagName.Equals("P", StringComparison.OrdinalIgnoreCase))
+                return false;
+            var links = element.QuerySelectorAll("a");
+            if (links.Length != 1) return false;
+            string text = links[0].TextContent.Trim();
+            if (text.Contains("察看") || text.Contains("查看") ||
+                text.Contains("繼續") || text.Contains("點此"))
+                return true;
+            return false;
+        }
+
         private static void ParseStandard(IElement divContent, ref SCPItem item)
         {
-            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
-            if (!HasStandardSections(pContent))
+            var pContent = CollectElements(divContent);
+
+            var subPageLinks = pContent.Where(el => IsSubPageLink(el)).ToList();
+            foreach (var linkEl in subPageLinks)
             {
-                pContent = divContent.QuerySelectorAll("div.list-pages-item > p,ul,blockquote");
+                var a = linkEl.QuerySelector("a");
+                if (a != null)
+                {
+                    string href = a.GetAttribute("href") ?? "";
+                    if (!string.IsNullOrEmpty(href))
+                    {
+                        if (href.StartsWith("/")) href = SCPUrl.REFERER + href;
+                        item.SubPageUrls.Add(href);
+                    }
+                }
+                pContent.Remove(linkEl);
             }
-            if (!HasStandardSections(pContent))
-            {
-                pContent = divContent.QuerySelectorAll(".listblock > p,.listblock > ul,.listblock > blockquote");
-            }
-            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
 
             var images = divContent.QuerySelectorAll("img");
             item.ImageUrls = images
@@ -136,7 +224,6 @@ namespace SCPView_WinUI.Data.Parser
             item.Tables = tables.Select(t => t.TextContent.Trim()).ToList();
 
             GetPContent(ref item, pContent);
-            GetCollapsibleContent(ref item, collapsibleContent);
             ExtractCompareBlocks(divContent, ref item);
         }
 
@@ -210,9 +297,6 @@ namespace SCPView_WinUI.Data.Parser
                     });
                 }
             }
-
-            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
-            GetCollapsibleContent(ref item, collapsibleContent);
         }
 
         private static async Task ParseEmbeddedAsync(IElement divContent, SCPItem item)
@@ -267,7 +351,7 @@ namespace SCPView_WinUI.Data.Parser
 
         private static void ParseComplex(IElement divContent, ref SCPItem item)
         {
-            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
+            var pContent = CollectElements(divContent);
             GetPContent(ref item, pContent);
 
             var expoblocks = divContent.QuerySelectorAll("div.expoblock");
@@ -294,12 +378,14 @@ namespace SCPView_WinUI.Data.Parser
                     if (!string.IsNullOrEmpty(text))
                     {
                         item.Contents += text + "\n";
+                        item.ContentBlocks.Add(new ContentBlock
+                        {
+                            Type = ContentBlockType.Text,
+                            Text = text
+                        });
                     }
                 }
             }
-
-            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
-            GetCollapsibleContent(ref item, collapsibleContent);
 
             var images = divContent.QuerySelectorAll("img");
             item.ImageUrls = images
@@ -318,30 +404,49 @@ namespace SCPView_WinUI.Data.Parser
             var contentBuilder = new StringBuilder();
 
             var h1Elements = divContent.QuerySelectorAll("h1");
+            var h1Texts = new HashSet<string>();
             foreach (var h1 in h1Elements)
             {
                 string text = h1.TextContent.Trim();
                 if (!string.IsNullOrEmpty(text))
                 {
-                    contentBuilder.AppendLine("【" + text + "】");
+                    string h1Text = "【" + text + "】";
+                    h1Texts.Add(h1Text);
+                    contentBuilder.AppendLine(h1Text);
+                    item.ContentBlocks.Add(new ContentBlock
+                    {
+                        Type = ContentBlockType.Text,
+                        Text = h1Text
+                    });
                 }
             }
 
-            var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
-            GetPContent(ref item, pContent);
-
-            if (!string.IsNullOrEmpty(item.Contents))
+            var pContent = CollectElements(divContent);
+            foreach (var el in pContent)
             {
-                contentBuilder.Append(item.Contents);
-            }
+                string text = el.TextContent.Trim();
+                if (string.IsNullOrEmpty(text)) continue;
 
-            var blockquoteElements = divContent.QuerySelectorAll("div.blockquote");
-            foreach (var bq in blockquoteElements)
-            {
-                string text = bq.TextContent.Trim();
-                if (!string.IsNullOrEmpty(text))
+                if (h1Texts.Contains(text)) continue;
+
+                if (el.TagName.Equals("BLOCKQUOTE", StringComparison.OrdinalIgnoreCase) ||
+                    el.ClassList.Contains("blockquote"))
                 {
                     item.BlockQuoteContents.Add(new BlockQuoteContent { QuoteContent = text });
+                    item.ContentBlocks.Add(new ContentBlock
+                    {
+                        Type = ContentBlockType.Blockquote,
+                        Text = text
+                    });
+                }
+                else
+                {
+                    contentBuilder.AppendLine(text);
+                    item.ContentBlocks.Add(new ContentBlock
+                    {
+                        Type = ContentBlockType.Text,
+                        Text = text
+                    });
                 }
             }
 
@@ -356,9 +461,6 @@ namespace SCPView_WinUI.Data.Parser
                 }
             }
 
-            var collapsibleContent = divContent.QuerySelectorAll("div.collapsible-block-content");
-            GetCollapsibleContent(ref item, collapsibleContent);
-
             var images = divContent.QuerySelectorAll("img");
             item.ImageUrls = images
                 .Select(img => img.GetAttribute("src"))
@@ -371,7 +473,7 @@ namespace SCPView_WinUI.Data.Parser
             item.Contents = contentBuilder.ToString().Trim();
         }
 
-        private static void GetPContent(ref SCPItem item, IHtmlCollection<IElement> elements)
+        private static void GetPContent(ref SCPItem item, List<IElement> elements)
         {
             var section = ParseSection.Header;
             var proceduresBuilder = new StringBuilder();
@@ -387,6 +489,11 @@ namespace SCPView_WinUI.Data.Parser
                     var bq = new BlockQuoteContent();
                     bq.QuoteContent = text;
                     item.BlockQuoteContents.Add(bq);
+                    item.ContentBlocks.Add(new ContentBlock
+                    {
+                        Type = ContentBlockType.Blockquote,
+                        Text = text
+                    });
                     continue;
                 }
 
@@ -395,6 +502,11 @@ namespace SCPView_WinUI.Data.Parser
                     int idx = text.IndexOf("项目等级：");
                     item.SafeLevel = text.Substring(idx + "项目等级：".Length).Trim();
                     section = ParseSection.Header;
+                    item.ContentBlocks.Add(new ContentBlock
+                    {
+                        Type = ContentBlockType.Text,
+                        Text = text
+                    });
                     continue;
                 }
 
@@ -405,6 +517,11 @@ namespace SCPView_WinUI.Data.Parser
                     string after = text.Substring(idx + "特殊收容措施：".Length).Trim();
                     if (!string.IsNullOrEmpty(after))
                         proceduresBuilder.AppendLine(after);
+                    item.ContentBlocks.Add(new ContentBlock
+                    {
+                        Type = ContentBlockType.Text,
+                        Text = text
+                    });
                     continue;
                 }
 
@@ -417,6 +534,11 @@ namespace SCPView_WinUI.Data.Parser
                     string after = text.Substring(idx + "描述：".Length).Trim();
                     if (!string.IsNullOrEmpty(after))
                         descriptionBuilder.AppendLine(after);
+                    item.ContentBlocks.Add(new ContentBlock
+                    {
+                        Type = ContentBlockType.Text,
+                        Text = text
+                    });
                     continue;
                 }
 
@@ -429,26 +551,15 @@ namespace SCPView_WinUI.Data.Parser
                         descriptionBuilder.AppendLine(text);
                         break;
                 }
+
+                item.ContentBlocks.Add(new ContentBlock
+                {
+                    Type = ContentBlockType.Text,
+                    Text = text
+                });
             }
 
             item.Contents = descriptionBuilder.ToString().Trim();
-        }
-
-        private static void GetCollapsibleContent(ref SCPItem item, IHtmlCollection<IElement> elements)
-        {
-            foreach (var element in elements)
-            {
-                if (element.TextContent.Contains("请按如下方式引用此页："))
-                    break;
-
-                var cbleContent = new CollapsibleContent();
-                if (element.TextContent.Contains("附件"))
-                {
-                    cbleContent.Name = element.TextContent.Substring(0, 6).Replace("\n", "").Trim();
-                }
-                cbleContent.Content = element.TextContent + "\n";
-                item.CollapsibleContents.Add(cbleContent);
-            }
         }
 
         private enum ParseSection
