@@ -6,11 +6,23 @@ namespace SCPView_WinUI.Data.Parser
 {
     public class SCPContestListParser
     {
-        public static List<SCPContestItem> Parse(string body)
+        public static SCPContestData Parse(string body)
         {
-            var items = new List<SCPContestItem>();
+            var data = new SCPContestData();
             var parser = new HtmlParser();
             var doc = parser.ParseDocument(body);
+
+            var toc0 = doc.QuerySelector("#toc0");
+            if (toc0 != null)
+            {
+                data.Title = toc0.TextContent.Trim();
+            }
+
+            var blockquote = doc.QuerySelector("blockquote");
+            if (blockquote != null)
+            {
+                data.Description = blockquote.TextContent.Trim();
+            }
 
             var liElements = doc.QuerySelectorAll("div.list-pages-box ul > li");
             foreach (var li in liElements)
@@ -23,7 +35,7 @@ namespace SCPView_WinUI.Data.Parser
                 string href = titleLink.GetAttribute("href") ?? "";
                 if (href.StartsWith("/")) href = SCPUrl.REFERER + href;
 
-                items.Add(new SCPContestItem
+                data.Items.Add(new SCPContestItem
                 {
                     Title = titleLink.TextContent.Trim(),
                     Href = href,
@@ -31,7 +43,7 @@ namespace SCPView_WinUI.Data.Parser
                 });
             }
 
-            return items;
+            return data;
         }
     }
 }

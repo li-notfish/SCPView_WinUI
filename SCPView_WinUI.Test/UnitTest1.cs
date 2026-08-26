@@ -154,13 +154,16 @@ namespace SCPView_WinUI.Test
         public async Task TestContestList()
         {
             string url = "/summer-contest-2026";
-            var items = await SCPService.GetContestList(url);
-            ClassicAssert.IsTrue(items.Count > 0);
-            ClassicAssert.IsFalse(string.IsNullOrEmpty(items[0].Title));
-            ClassicAssert.IsFalse(string.IsNullOrEmpty(items[0].Author));
-            Console.WriteLine($"Total items: {items.Count}");
-            Console.WriteLine($"First: {items[0].Title} - {items[0].Author}");
-            Console.WriteLine($"Last: {items.Last().Title} - {items.Last().Author}");
+            var data = await SCPService.GetContestList(url);
+            ClassicAssert.IsTrue(data.Items.Count > 0);
+            ClassicAssert.IsFalse(string.IsNullOrEmpty(data.Title));
+            ClassicAssert.IsFalse(string.IsNullOrEmpty(data.Items[0].Title));
+            ClassicAssert.IsFalse(string.IsNullOrEmpty(data.Items[0].Author));
+            Console.WriteLine($"Title: {data.Title}");
+            Console.WriteLine($"Description: {data.Description}");
+            Console.WriteLine($"Total items: {data.Items.Count}");
+            Console.WriteLine($"First: {data.Items[0].Title} - {data.Items[0].Author}");
+            Console.WriteLine($"Last: {data.Items.Last().Title} - {data.Items.Last().Author}");
         }
     }
 }

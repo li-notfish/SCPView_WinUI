@@ -125,7 +125,7 @@
                     <StackPanel Orientation="Vertical" Spacing="8">
                         <Button
                             Command="{Binding ToContestListPageCommand}"
-                            Content="2026夏季征文：幕前"
+                            Content="查看征文列表"
                             Style="{StaticResource AccentButtonStyle}" />
                     </StackPanel>
                 </DataTemplate>

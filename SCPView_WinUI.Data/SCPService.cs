@@ -171,7 +171,7 @@ namespace SCPView_WinUI.Data
         /// </summary>
         /// <param name="contestUrl">征文页面地址</param>
         /// <returns></returns>
-        public static async Task<List<SCPContestItem>> GetContestList(string contestUrl)
+        public static async Task<SCPContestData> GetContestList(string contestUrl)
         {
             return await WithRetry(async () =>
             {
@@ -184,7 +184,7 @@ namespace SCPView_WinUI.Data
                     string body = response.Content;
                     return SCPContestListParser.Parse(body);
                 }
-                return new List<SCPContestItem>();
+                return new SCPContestData();
             });
         }
 

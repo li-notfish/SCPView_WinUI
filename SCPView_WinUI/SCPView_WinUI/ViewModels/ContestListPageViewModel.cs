@@ -18,6 +18,12 @@ namespace SCPView_WinUI.ViewModels
         private ObservableCollection<SCPContestItem> contestItems = new ObservableCollection<SCPContestItem>();
 
         [ObservableProperty]
+        private string contestTitle = string.Empty;
+
+        [ObservableProperty]
+        private string contestDescription = string.Empty;
+
+        [ObservableProperty]
         private Visibility processBarVisibility = Visibility.Collapsed;
 
         private INavigationService _navigationService;
@@ -33,6 +39,8 @@ namespace SCPView_WinUI.ViewModels
                 if (m.Value is string contestUrl)
                 {
                     ContestItems.Clear();
+                    ContestTitle = "征文竞赛";
+                    ContestDescription = string.Empty;
                     LoadContestList(contestUrl);
                 }
             });
@@ -47,10 +55,16 @@ namespace SCPView_WinUI.ViewModels
             try
             {
                 ProcessBarVisibility = Visibility.Visible;
-                var items = await SCPService.GetContestList(contestUrl);
+                var data = await SCPService.GetContestList(contestUrl);
                 if (token.IsCancellationRequested) return;
 
-                foreach (var item in items)
+                if (!string.IsNullOrEmpty(data.Title))
+                    ContestTitle = data.Title;
+
+                if (!string.IsNullOrEmpty(data.Description))
+                    ContestDescription = data.Description;
+
+                foreach (var item in data.Items)
                     ContestItems.Add(item);
             }
             catch (OperationCanceledException) { }
