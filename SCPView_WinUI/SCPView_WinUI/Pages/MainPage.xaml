@@ -81,7 +81,7 @@
                         Visibility="{Binding ProcessBarVisibility}" />
                 </Grid>
             </Hub.Header>
-            <HubSection Width="1280" Margin="0,0,80,0">
+            <HubSection Width="900" Margin="0,0,80,0">
                 <DataTemplate>
                     <Grid MinHeight="200">
                         <Image
@@ -92,7 +92,7 @@
                             Visibility="{Binding HasBannerImage, Converter={StaticResource BoolToVisConverter}}" />
                         <TextBlock
                             Margin="16"
-                            VerticalAlignment="Bottom"
+                            VerticalAlignment="Top"
                             HorizontalAlignment="Left"
                             Foreground="Black"
                             Style="{StaticResource BodyStrongTextBlockStyle}"
@@ -117,6 +117,16 @@
                                 <GroupStyle HeaderTemplate="{StaticResource ZoomedInGroupHeaderTemplate}" />
                             </GridView.GroupStyle>
                         </GridView>
+                    </StackPanel>
+                </DataTemplate>
+            </HubSection>
+            <HubSection Width="300" Header="征文竞赛">
+                <DataTemplate>
+                    <StackPanel Orientation="Vertical" Spacing="8">
+                        <Button
+                            Command="{Binding ToContestListPageCommand}"
+                            Content="2026夏季征文：幕前"
+                            Style="{StaticResource AccentButtonStyle}" />
                     </StackPanel>
                 </DataTemplate>
             </HubSection>

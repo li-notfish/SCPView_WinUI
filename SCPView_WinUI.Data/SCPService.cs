@@ -166,6 +166,28 @@ namespace SCPView_WinUI.Data
             });
         }
 
+        /// <summary>
+        /// 获取征文列表
+        /// </summary>
+        /// <param name="contestUrl">征文页面地址</param>
+        /// <returns></returns>
+        public static async Task<List<SCPContestItem>> GetContestList(string contestUrl)
+        {
+            return await WithRetry(async () =>
+            {
+                var options = new RestClientOptions(SCPUrl.REFERER);
+                var client = GetClient(options);
+                var request = new RestRequest(contestUrl);
+                var response = await client.GetAsync(request);
+                if (response.IsSuccessful)
+                {
+                    string body = response.Content;
+                    return SCPContestListParser.Parse(body);
+                }
+                return new List<SCPContestItem>();
+            });
+        }
+
         public static async Task<SCPBanner> GetBanner()
         {
             var banner = await WithRetry(async () =>

@@ -315,8 +315,35 @@ namespace SCPView_WinUI.Data.Parser
 
         private static void ParseLongNarrative(IElement divContent, ref SCPItem item)
         {
+            var contentBuilder = new StringBuilder();
+
+            var h1Elements = divContent.QuerySelectorAll("h1");
+            foreach (var h1 in h1Elements)
+            {
+                string text = h1.TextContent.Trim();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    contentBuilder.AppendLine("【" + text + "】");
+                }
+            }
+
             var pContent = divContent.QuerySelectorAll(":scope > p,ul,:scope > blockquote");
             GetPContent(ref item, pContent);
+
+            if (!string.IsNullOrEmpty(item.Contents))
+            {
+                contentBuilder.Append(item.Contents);
+            }
+
+            var blockquoteElements = divContent.QuerySelectorAll("div.blockquote");
+            foreach (var bq in blockquoteElements)
+            {
+                string text = bq.TextContent.Trim();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    item.BlockQuoteContents.Add(new BlockQuoteContent { QuoteContent = text });
+                }
+            }
 
             var footnotes = divContent.QuerySelectorAll("sup > a,div.footnotes-footer");
             int fnId = 1;
@@ -340,6 +367,8 @@ namespace SCPView_WinUI.Data.Parser
 
             var tables = divContent.QuerySelectorAll("table");
             item.Tables = tables.Select(t => t.TextContent.Trim()).ToList();
+
+            item.Contents = contentBuilder.ToString().Trim();
         }
 
         private static void GetPContent(ref SCPItem item, IHtmlCollection<IElement> elements)

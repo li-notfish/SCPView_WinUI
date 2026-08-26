@@ -149,5 +149,18 @@ namespace SCPView_WinUI.Test
             Console.WriteLine($"CollapsibleContents: {item.CollapsibleContents.Count}");
             Console.WriteLine($"BlockQuoteContents: {item.BlockQuoteContents.Count}");
         }
+
+        [Test]
+        public async Task TestContestList()
+        {
+            string url = "/summer-contest-2026";
+            var items = await SCPService.GetContestList(url);
+            ClassicAssert.IsTrue(items.Count > 0);
+            ClassicAssert.IsFalse(string.IsNullOrEmpty(items[0].Title));
+            ClassicAssert.IsFalse(string.IsNullOrEmpty(items[0].Author));
+            Console.WriteLine($"Total items: {items.Count}");
+            Console.WriteLine($"First: {items[0].Title} - {items[0].Author}");
+            Console.WriteLine($"Last: {items.Last().Title} - {items.Last().Author}");
+        }
     }
 }

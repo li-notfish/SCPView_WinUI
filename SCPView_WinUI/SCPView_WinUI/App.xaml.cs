@@ -77,6 +77,7 @@ namespace SCPView_WinUI
                 .AddSingleton<ItemPageViewModel>()
                 .AddSingleton<ItemContentPageViewModel>()
                 .AddSingleton<TalesListPageViewModel>()
+                .AddSingleton<ContestListPageViewModel>()
                 .BuildServiceProvider()
                 );
             var service = new ServiceCollection();
@@ -91,6 +92,7 @@ namespace SCPView_WinUI
             navigate.Configure(nameof(ItemPage), typeof(ItemPage));
             navigate.Configure(nameof(ItemContentPage),typeof(ItemContentPage));
             navigate.Configure(nameof(TalesListPage), typeof(TalesListPage));
+            navigate.Configure(nameof(ContestListPage), typeof(ContestListPage));
             return navigate;
         }
     }

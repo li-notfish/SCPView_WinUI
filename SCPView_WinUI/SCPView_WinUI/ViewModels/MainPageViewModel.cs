@@ -110,5 +110,11 @@ namespace SCPView_WinUI.ViewModels
             }
             
         }
+
+        [RelayCommand]
+        private void ToContestListPage()
+        {
+            _navigationService.NavigateTo(nameof(ContestListPage), "/summer-contest-2026");
+        }
     }
 }

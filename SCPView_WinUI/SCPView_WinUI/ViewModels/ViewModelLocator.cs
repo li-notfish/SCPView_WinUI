@@ -22,6 +22,7 @@ namespace SCPView_WinUI.ViewModels
         public ItemPageViewModel ItemPage => Ioc.Default.GetService<ItemPageViewModel>();
         public ItemContentPageViewModel ItemContentPage => Ioc.Default.GetService<ItemContentPageViewModel>();
         public TalesListPageViewModel TalesListPage => Ioc.Default.GetService<TalesListPageViewModel>();
+        public ContestListPageViewModel ContestListPage => Ioc.Default.GetService<ContestListPageViewModel>();
     }
 
     public class ParameterMessage : ValueChangedMessage<object>
