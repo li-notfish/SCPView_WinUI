@@ -1,0 +1,15 @@
+{
+    "profiles": {
+        "SCPView_WinUI (Packaged)": {
+            "commandName": "MsixPackage",
+            "commandLineArgs": "",
+            "alwaysReinstallApp": false,
+            "remoteDebugEnabled": false,
+            "allowLocalNetworkLoopbackProperty": true,
+            "authenticationMode": "Windows",
+            "doNotLaunchApp": false,
+            "remoteDebugMachine": "",
+            "nativeDebugging": false
+        }
+    }
+}
