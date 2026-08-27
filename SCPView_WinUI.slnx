@@ -7,7 +7,7 @@
   </Configurations>
   <Project Path="SCPView_WinUI.Data/SCPView_WinUI.Data.csproj" />
   <Project Path="SCPView_WinUI.Test/SCPView_WinUI.Test.csproj" />
-  <Project Path="SCPView_WinUI/SCPView_WinUI/SCPView_WinUI.csproj">
+  <Project Path="SCPView_WinUI/SCPView_WinUI.csproj">
     <Platform Solution="*|Any CPU" Project="x64" />
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />

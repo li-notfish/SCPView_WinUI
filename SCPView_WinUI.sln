@@ -4,7 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.8.34112.27
 MinimumVisualStudioVersion = 10.0.40219.1
 
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SCPView_WinUI", "SCPView_WinUI\SCPView_WinUI\SCPView_WinUI.csproj", "{68152B6B-4878-49A5-AEE6-A2D12CC7D137}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SCPView_WinUI", "SCPView_WinUI\SCPView_WinUI.csproj", "{68152B6B-4878-49A5-AEE6-A2D12CC7D137}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SCPView_WinUI.Data", "SCPView_WinUI.Data\SCPView_WinUI.Data.csproj", "{8FC31515-197E-4000-B392-E63D492AFA6D}"
 EndProject

@@ -58,7 +58,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SCPView_WinUI.Data\SCPView_WinUI.Data.csproj" />
+    <ProjectReference Include="..\SCPView_WinUI.Data\SCPView_WinUI.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
