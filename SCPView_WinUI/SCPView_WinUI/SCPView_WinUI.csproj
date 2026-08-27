@@ -22,6 +22,7 @@
 	<AppxBundle>Always</AppxBundle>
 	<AppxBundlePlatforms>x64</AppxBundlePlatforms>
 	<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+	<AppxPackageDir>D:\Upload\SCPUpload\</AppxPackageDir>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Pages\ItemContentPage.xaml" />
