@@ -7,14 +7,11 @@
   </Configurations>
   <Project Path="SCPView_WinUI.Data/SCPView_WinUI.Data.csproj" />
   <Project Path="SCPView_WinUI.Test/SCPView_WinUI.Test.csproj" />
-  <Project Path="SCPView_WinUI/SCPView_WinUI (Package)/SCPView_WinUI (Package).wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5">
-    <Platform Solution="*|Any CPU" Project="x64" />
-    <Deploy />
-  </Project>
   <Project Path="SCPView_WinUI/SCPView_WinUI/SCPView_WinUI.csproj">
     <Platform Solution="*|Any CPU" Project="x64" />
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Deploy Solution="Release|Any CPU" />
   </Project>
 </Solution>
